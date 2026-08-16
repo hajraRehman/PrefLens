@@ -61,15 +61,27 @@ def _semantic_value(r: dict) -> float | None:
     return sign          # pairwise: +/-1 per response, mean gives 2*P(A)-1
 
 
-def build_scores(df: pd.DataFrame, items: dict) -> pd.DataFrame:
-    """Raw and position-adjusted score per (model, method, item)."""
+def build_scores(df: pd.DataFrame, items: dict, exp_cfg: dict) -> pd.DataFrame:
+    """Raw and position-adjusted score per (model, method, item).
+
+    ESTIMATOR PARITY (D-41). `raw` is taken directly from `analysis.build_scores`,
+    the canonical main-analysis score, rather than recomputed here. `adjusted`
+    reuses the same imputation constant via `analysis.self_report_median_strength`.
+    An earlier version recomputed the median from the neutral-only subset, which
+    made raw-vs-adjusted a comparison between two different estimators.
+    """
     ok = df[(df["parse_success"] == True) & (df["framing_variant"] == "neutral")]  # noqa: E712
     ok = ok[~ok["preference_id"].map(lambda p: items[p].sanity_control)]
     ok = ok[ok["method"].isin(ADJUSTABLE)]
 
-    # Median self-reported strength per model, matching the main analysis (D-06).
-    med = (ok[ok.method == "self_report"].dropna(subset=["strength_self_report"])
-             .groupby("model_key")["strength_self_report"].median().to_dict())
+    # The canonical main-analysis scores, neutral framing.
+    main = A.build_scores(df, exp_cfg)
+    main = main[(main.framing_variant == "neutral") & (main.method.isin(ADJUSTABLE))]
+    raw_lookup = {(r.model_key, r.method, r.preference_id): r.score
+                  for r in main.itertuples()}
+
+    # Exactly the constant build_scores used.
+    med = A.self_report_median_strength(df)
 
     rows = []
     for (mk, meth, pid), d in ok.groupby(["model_key", "method", "preference_id"]):
@@ -85,11 +97,17 @@ def build_scores(df: pd.DataFrame, items: dict) -> pd.DataFrame:
 
         if not vals["ab"] or not vals["ba"]:
             continue                              # cannot adjust without both orders
-        allv = vals["ab"] + vals["ba"]
+        raw = raw_lookup.get((mk, meth, pid))
+        if raw is None or not np.isfinite(raw):
+            continue
+        # Recomputed here only to verify parity with the canonical score.
+        recomputed = float(np.mean(vals["ab"] + vals["ba"]))
         rows.append({
             "model_key": mk, "method": meth, "preference_id": pid,
-            # Raw = the estimator the main analysis uses: mean over all responses.
-            "raw": float(np.mean(allv)),
+            # Raw comes from analysis.build_scores, NOT recomputed (D-41).
+            "raw": float(raw),
+            "raw_recomputed": recomputed,
+            "parity_abs_diff": abs(float(raw) - recomputed),
             # Adjusted = mean of the two order-conditioned means (position cancels).
             "adjusted": float((np.mean(vals["ab"]) + np.mean(vals["ba"])) / 2),
             "n_ab": len(vals["ab"]), "n_ba": len(vals["ba"]),
@@ -121,7 +139,16 @@ def run() -> dict:
     exp = A.load_experiment_cfg()
     items = A.load_items()
     df = A.load_raw(exp["main"]["experiment_id"])
-    sc = build_scores(df, items)
+    sc = build_scores(df, items, exp)
+
+    # Hard parity check before anything is interpreted.
+    worst = float(sc["parity_abs_diff"].max())
+    if worst > 1e-9:
+        bad = sc[sc.parity_abs_diff > 1e-9][
+            ["model_key", "method", "preference_id", "raw", "raw_recomputed"]]
+        raise SystemExit(
+            f"ESTIMATOR PARITY FAILED (max abs diff {worst:.2e}).\n" + bad.to_string())
+    print(f"estimator parity vs analysis.build_scores: max abs diff {worst:.2e}  OK\n")
     OUT_TABLE.parent.mkdir(parents=True, exist_ok=True)
     sc.to_csv(OUT_TABLE, index=False)
 

@@ -9,6 +9,67 @@
 
 ---
 
+## D-41 — Estimator parity failure in the position-adjusted reanalysis
+
+**Found in review of 9c21d16, before the result was trusted.**
+
+`position_adjusted.py` labelled its `raw` column "the estimator the main analysis
+uses". It was not. The main analysis computes the self-report missing-strength
+imputation median over **all framings** (`analysis.build_scores`); the reanalysis
+recomputed it from the **neutral-only** subset. The two therefore used slightly
+different self-report scores, so raw-vs-adjusted was a comparison between two
+estimators rather than a clean before/after.
+
+### Repair
+
+* `analysis.self_report_median_strength()` extracted as the single source of the
+  imputation constant, used by both pipelines.
+* `raw` is now **read directly from `analysis.build_scores`** instead of being
+  recomputed; the reanalysis recomputes it only to assert parity, and aborts if
+  the difference exceeds 1e-9. Observed: **1.11e-16**.
+* Three regression tests: per-cell parity, correlation parity against the main
+  analysis on the same items, and a source check that the module cannot recompute
+  its own median.
+
+### Effect on results
+
+Gemini's raw correlation moved **0.866 → 0.885** (the bug was real and visible).
+Llama's raw was already −0.007 and is unchanged; **the headline −0.007 → +0.524
+survives**. Qwen unchanged.
+
+A second, separate point of confusion is now disclosed in the report: the
+reanalysis uses each model's **full** item set (11–12 items) while §4.4's method
+pair table uses the **10-item matched subset**, so their raw correlations
+legitimately differ (Llama −0.007 vs +0.037). Verified that the reanalysis
+reproduces the main analysis exactly on a matched item basis.
+
+### Claims narrowed at the same time
+
+* "Llama's disagreement **was** a position artefact" -> "removing realised order
+  imbalance **increased the observed correlation**, consistent with position
+  contributing". The permutation p-values test each correlation against its own
+  null; they do **not** test whether the change is significant.
+* Dropped the generalisation to §4.1's three-method figures, which include two
+  procedures the adjustment cannot be applied to.
+* Study 3: "the objection is refuted" -> "the explicit-indifference-cue
+  explanation is not supported for 120B", plus an explicit note that only one
+  sentence was removed, not every feature that could encourage tie-breaking.
+* Dropped "robust null". No equivalence margin or SESOI was pre-specified, so
+  failure to reject is not evidence of equivalence; the defensible statement is
+  that the 120B model **remained extremely position-dominated** either way.
+* 20B's H3 result and the interaction relabelled **suggestive** everywhere,
+  with the multiplicity caveat attached in the README as well as the report.
+
+### Stale lines fixed in the same pass
+
+Reproducibility paths did not list `followup_gpt_oss_neutral_framing`; RQ3 still
+said "within one family and provider" (true only of Study 2b); contribution 2
+still described the withdrawn "chance baseline simulated at the actual sample
+sizes"; and §5 justified paid endpoints as removing a serving-stack confound that
+final audit showed they did not remove.
+
+---
+
 ## D-40 — Outcomes of RQ4 (Study 3) and the position-adjusted reanalysis
 
 Recorded after the runs. D-38's hypotheses are left exactly as written.

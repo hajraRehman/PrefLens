@@ -172,3 +172,63 @@ def test_deprecated_baseline_is_not_used_by_the_analysis_summary():
         # If the deprecated baseline is still emitted it must be clearly marked.
         assert "random_baseline" not in v, \
             f"{model} still carries an unmarked deprecated baseline"
+
+
+# ---------------------------------------- estimator parity for the adjusted analysis
+
+def test_position_adjusted_raw_equals_main_analysis_scores():
+    """The 'raw' column of the adjusted analysis must BE the main-analysis score.
+
+    Regression test for D-41: an earlier version recomputed the self-report
+    median-strength imputation from the neutral-only subset, producing a subtly
+    different estimator, so raw-vs-adjusted was not a like-for-like comparison.
+    """
+    from pathlib import Path
+    import pandas as pd
+    p = Path(__file__).resolve().parents[1] / "results" / "tables" / \
+        "main_position_adjusted_convergence.csv"
+    if not p.exists():
+        pytest.skip("position-adjusted analysis not run")
+    d = pd.read_csv(p)
+    assert "parity_abs_diff" in d.columns
+    worst = float(d["parity_abs_diff"].max())
+    assert worst < 1e-9, f"raw score diverges from analysis.build_scores by {worst:.2e}"
+
+
+def test_position_adjusted_raw_correlation_matches_main_analysis():
+    """The raw correlation must equal the main analysis on the SAME item basis."""
+    from pathlib import Path
+    import pandas as pd
+    from src import analysis as A
+    from src import metrics as M
+
+    p = Path(__file__).resolve().parents[1] / "results" / "tables" / \
+        "main_position_adjusted_convergence.csv"
+    if not p.exists():
+        pytest.skip("position-adjusted analysis not run")
+    d = pd.read_csv(p)
+
+    exp, items = A.load_experiment_cfg(), A.load_items()
+    df = A.load_raw("main")
+    sc = A.build_scores(df, exp)
+
+    for mk, g in d.groupby("model_key"):
+        piv = g.pivot(index="preference_id", columns="method", values="raw").dropna()
+        mine = M.spearman(piv["self_report"], piv["pairwise"])["rho"]
+        mat = A.score_matrix(sc, mk, "neutral", items)
+        sub = mat.loc[piv.index, ["self_report", "pairwise"]].dropna()
+        theirs = M.spearman(sub["self_report"], sub["pairwise"])["rho"]
+        assert mine == pytest.approx(theirs, abs=1e-9), (
+            f"{mk}: adjusted-analysis raw rho {mine:.4f} != main-analysis {theirs:.4f} "
+            "on the same items")
+
+
+def test_self_report_median_is_shared_not_recomputed():
+    """Both pipelines must draw the imputation constant from one function."""
+    import inspect
+    from src import position_adjusted as PA
+    src = inspect.getsource(PA.build_scores)
+    assert "self_report_median_strength" in src, \
+        "position_adjusted must reuse analysis.self_report_median_strength (D-41)"
+    assert ".median()" not in src, \
+        "position_adjusted must not recompute its own median (D-41)"

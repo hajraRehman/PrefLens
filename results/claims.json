@@ -334,8 +334,8 @@
     "note": "model x framing interaction on |position|"
   },
   "adj_gemini_rho_raw": {
-    "value": 0.866,
-    "text": "0.866",
+    "value": 0.885,
+    "text": "0.885",
     "documents": [
       "report/report.md",
       "README.md"

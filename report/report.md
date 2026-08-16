@@ -5,7 +5,8 @@
 Code and raw data: <https://github.com/hajraRehman/PrefLens>
 Run date: 2026-08-16. All reported results are reproducible from the committed
 raw-data directories (`data/raw/{pilot,main,manipulation_check,
-followup_gpt_oss,followup_gpt_oss_provider_pinned}/`) and the configs in
+followup_gpt_oss,followup_gpt_oss_provider_pinned,
+followup_gpt_oss_neutral_framing}/`) and the configs in
 `configs/`.
 
 ---
@@ -18,16 +19,17 @@ consistency. Study 1 applied four distinct procedures to 12 welfare-neutral task
 pairs across three model families (4,013 trial records). Against a matched
 permutation null, only Gemini-3.1-flash-lite converged above chance (p = 0.0019);
 Qwen-2.5-7B's pairwise scores reproduced the display-order draw exactly on all 12
-items. Removing position by averaging display orders raised Llama's
-self-report/pairwise agreement from ρ = −0.007 to +0.524, so some apparent
-methodological disagreement was position artefact. Study 2 (exact
-counterbalancing, provider-pinned) found the larger GPT-OSS model *more*
-position-dominated (Δ = −0.333), rejecting our pre-specified hypothesis; Study 3
-showed this persists after deleting the prompt's indifference cue for 120B, while
-20B became less position-driven. Preference studies should counterbalance option
-order and report position-conditioned rates.
+items. In an exploratory self-report/pairwise reanalysis, equal-weighting the two
+display orders raised Llama's observed correlation from −0.007 to +0.524,
+suggesting order imbalance can obscure cross-method agreement. Study 2
+(exact counterbalancing, provider-pinned) found the larger GPT-OSS model *more*
+position-dominated (Δ = −0.333), rejecting our pre-specified hypothesis. Extreme
+position sensitivity in GPT-OSS 120B persisted after removing the prompt's
+explicit indifference cue; the smaller model showed a suggestive framing effect.
+Preference studies should counterbalance option order and report
+position-conditioned rates.
 
-*(137 words)*
+*(142 words)*
 
 ---
 
@@ -61,7 +63,11 @@ preferences? (Study 1: four methods, three model families.)
 (Diagnostic analysis within Study 1.)
 
 **RQ3.** Does positional susceptibility differ with model scale *within* one
-family and provider? (Study 2: GPT-OSS 20B vs 120B, exact counterbalancing.)
+family? (Studies 2/2b: GPT-OSS 20B vs 120B, exact counterbalancing; **Study 2b**
+provides the provider-pinned comparison.)
+
+**RQ4.** Does the elicitation prompt's own framing change positional
+susceptibility? (Study 3: Study 2b with the indifference cue deleted.)
 
 Study 1 raised RQ3 but cannot answer it: its three models differ in family,
 scale, data, post-training and serving stack simultaneously. Study 2
@@ -74,8 +80,9 @@ scales.
 1. A reusable, fully logged elicitation harness implementing four methods behind
    one provider-agnostic interface, with per-trial order randomisation, strict
    parse accounting, checkpointing, and a full test suite.
-2. A cross-method convergence analysis on three model families, reported against
-   a chance baseline simulated at the actual sample sizes.
+2. A cross-method convergence analysis on three model families, tested against a
+   **matched permutation null** that preserves each procedure's observed score
+   distribution and destroys only cross-method item alignment.
 3. **A position/content decomposition that distinguishes cross-method
    disagreement from cases where an elicitation measure carries no detectable
    order-invariant content signal** — and the finding that one standard pairwise
@@ -345,19 +352,28 @@ is therefore a **single method pair**, not an average over pairs, and is not
 comparable in magnitude to the 3-method figures in §4.1. Raw and adjusted are
 computed on the same two-method basis.
 
+**Estimator parity.** `raw` is taken directly from `analysis.build_scores` — the
+same score the rest of the paper uses — not recomputed here, and `adjusted` reuses
+the identical self-report imputation constant. A check asserts the two agree to
+1.1e-16 per cell. An earlier version recomputed the imputation median from the
+neutral-only subset and was therefore comparing two slightly different estimators
+(D-41). Note the basis here is each model's full item set (11–12 items), so the
+raw values differ from the 10-item matched subset in §4.4 for that reason alone.
+
 | model | raw ρ | p (perm) | adjusted ρ | p (perm) | raw dir. agr. | adjusted dir. agr. |
 |---|---|---|---|---|---|---|
-| Gemini | 0.866 | 0.0010 | **0.924** | 0.0003 | 0.875 | 1.000 |
+| Gemini | 0.885 | 0.0006 | **0.924** | 0.0003 | 0.875 | 1.000 |
 | **Llama** | **−0.007** | 0.5101 | **+0.524** | **0.0420** | 0.571 | 0.833 |
 | Qwen | −0.190 | 0.7263 | **undefined** | — | 0.600 | undefined |
 
-**Llama's apparent cross-method disagreement was substantially a position
-artefact.** Its self-report/pairwise correlation moves from essentially zero to
-+0.524 once display order is averaged out, and direction agreement from 0.571 to
-0.833. Under the raw scores one would conclude these two procedures measure
-unrelated things; under the adjusted scores they agree moderately.
+For Llama's self-report/pairwise pair, **removing realised order imbalance
+increased the observed correlation substantially** (ρ = −0.007 → +0.524; direction
+agreement 0.571 → 0.833), which is consistent with display position contributing
+to their apparent disagreement. We have not tested whether the *change* itself is
+statistically significant — the quoted p-values are permutation tests of each
+correlation against its own null, not of the difference between them.
 
-**Gemini** was already converged and adjustment changes little (+0.058).
+**Gemini** was already converged and adjustment changes little (+0.040).
 
 **Qwen is undefined, and that is the result.** Its adjusted pairwise score is
 exactly 0.000 on all twelve items — a constant vector, for which a rank
@@ -365,10 +381,12 @@ correlation does not exist. Once display order is removed, nothing remains of
 that measure to correlate with anything.
 
 This analysis is **exploratory**, generated by the diagnostics rather than
-pre-specified, and rests on one method pair. But it qualifies the paper's central
-claim in a useful direction: some of the cross-method disagreement in §4.1 is
-nuisance position variance rather than genuine construct disagreement, and a
-convergence study that does not remove position may understate agreement.
+pre-specified, and rests on a single method pair over 11–12 items. It does not
+license a claim about §4.1's three-method figures, which include two procedures
+this adjustment cannot be applied to. What it does show is narrower and still
+useful: for one method pair in one model, order imbalance was large enough to
+mask a moderate correlation, so a convergence study that leaves position in the
+estimate can **understate** agreement as well as manufacture it.
 
 ### 4.4 Which method pairs agree
 
@@ -457,9 +475,11 @@ post-training, which differ between sizes even within a family.
 | sampling | temperature 1.0, top_p 1.0, max_tokens 800, identical across arms |
 | prompt | minimal forced choice; no justification, no introspection requested |
 
-A `:free` endpoint exists for the 20B model but not the 120B. Using it would have
-reintroduced the serving-stack confound the study exists to remove, so both arms
-use the same paid endpoint (D-26). Total cost: under one US cent.
+A `:free` endpoint exists for the 20B model but not the 120B. We originally used
+the standard paid endpoint for both, intending to reduce serving-stack
+differences. **Final audit showed this was insufficient**: routing through one
+gateway does not pin the upstream inference provider, which remained uncontrolled
+and unrecorded. Study 2b repairs this (§6.4). Total cost: under one US cent.
 
 ### 5.3 Exact counterbalancing
 
@@ -640,25 +660,35 @@ failures.
 | **20B** | \|position\| | 0.608 | 0.483 | **+0.125** | **[+0.025, +0.225]** |
 | 20B | \|content\| | 0.208 | 0.317 | +0.108 | [−0.017, +0.233] |
 
-**The objection is refuted for the 120B model.** Removing the cue moved its
-position susceptibility by +0.017 with an interval spanning zero. Near-
-deterministic first-position responding **persists without any instruction that
-the options are equivalent**. H3 is not supported here, and that null is the more
-robust of the two results because it is a wide, clearly-centred null rather than a
-marginal effect.
+**The explicit-indifference-cue explanation is not supported for the 120B model.**
+Extreme positional responding persisted without the cue: |position| went 0.942 →
+0.925, a paired change of +0.017 [−0.025, +0.067]. We did not pre-specify an
+equivalence margin, so this is not positive evidence of exact equivalence; the
+defensible statement is that **whatever effect deleting that sentence had, the
+120B model remained extremely position-dominated**.
 
-**The objection has partial force for the 20B model.** Removing the cue reduced
-|position| by 0.125, CI excluding zero — H3 supported. Its content signal rose
-(0.208 → 0.317) in the predicted direction, but H4's interval includes zero.
+Note also what was *not* manipulated. We removed one specific sentence, not every
+feature of the protocol that might encourage default or tie-breaking behaviour —
+the forced binary choice, the JSON schema, and the welfare-neutral item set all
+remain.
 
-**The two models differ.** The model × framing interaction on |position| is
-−0.108 [−0.208, −0.008], excluding zero: framing matters for the smaller model
-and not detectably for the larger one.
+**For the 20B model the change was in the pre-specified direction**, |position|
+0.608 → 0.483, and its unadjusted 95% CI excluded zero (+0.125 [+0.025, +0.225]),
+providing **suggestive** evidence that the cue increased positional
+susceptibility. Its content signal moved as H4 predicted (0.208 → 0.317) but that
+interval includes zero.
+
+**The two models may differ.** The model × framing interaction on |position| is
+−0.108 [−0.208, −0.008]. This is **similarly suggestive**: it points to framing
+mattering for the smaller model and not detectably for the larger one, i.e.
+elicitation framing may interact with model identity rather than exerting a
+uniform effect.
 
 **Multiplicity.** Four hypothesis tests plus the interaction. The 20B effect and
-the interaction only just exclude zero and would not survive a strict correction
-across five tests; both are reported as **suggestive**. The 120B null does not
-depend on a threshold.
+the interaction only just exclude zero and **would not survive a strict correction
+across the five reported tests**; both are reported as suggestive throughout. The
+120B result does not depend on a threshold, since it is a small estimate with an
+interval spanning zero rather than a marginal exclusion.
 
 **Why this matters for the track.** The finding is not "LLMs have position bias",
 which is established. It is that **an ostensibly innocuous elicitation
@@ -724,23 +754,26 @@ balanced items. A model can look completely healthy on validity controls and
 still yield preference measurements that are pure artefact. Control items test
 comprehension; they do not test whether a preference was measured.
 
-**Part of the disagreement was nuisance, not construct.** Averaging display
-orders raised Llama's self-report/pairwise correlation from ρ = −0.007 to +0.524
-(§4.3). A convergence study that does not remove position can therefore
-*understate* agreement — the mirror of the more familiar worry that it overstates
-preference. For Qwen the adjusted measure is a constant zero, so convergence is
-undefined rather than low. Exploratory, one method pair, but it sharpens what
-"methods disagree" can mean.
+**Order imbalance can obscure agreement, not only manufacture it.** Equal-
+weighting the two display orders raised Llama's self-report/pairwise correlation
+from ρ = −0.007 to +0.524 (§4.3), consistent with position contributing to their
+apparent disagreement. For Qwen the adjusted measure is a constant zero, so a
+correlation does not exist rather than being low. This is exploratory, covers one
+method pair, and does not extend to the three-method figures in §4.1 — but it
+shows the familiar worry has a mirror image: leaving position in an estimate can
+*understate* agreement as well as fabricate signal.
 
-**Our own instruction is part of the instrument.** Deleting one sentence — "there
-is no correct answer and no choice is more helpful than any other" — left the
-120B model's position susceptibility essentially unchanged (+0.017, CI spanning
-zero) but reduced the 20B model's by 0.125 (CI excluding zero), with a
-model × framing interaction of −0.108 [−0.208, −0.008] (§6.5). So the sceptical
-objection that we manufactured the artefact is refuted for the larger model and
-partly sustained for the smaller one. Both halves matter: elicitation framing is
-a variable that can modulate the artefact, and it should be reported as carefully
-as temperature.
+**Elicitation framing may interact with model identity.** Deleting one sentence —
+"there is no correct answer and no choice is more helpful than any other" — left
+the 120B model extremely position-dominated (0.942 → 0.925, +0.017 with an
+interval spanning zero), so the explicit-indifference-cue explanation is not
+supported there. The 20B model moved in the predicted direction (0.608 → 0.483,
+CI excluding zero), and the model × framing interaction was −0.108 [−0.208,
+−0.008]. Both of the latter are **suggestive** rather than established: neither
+survives strict correction across the five reported tests. The reasonable reading
+is that framing may interact with model identity rather than exerting a uniform
+effect, which makes prompt framing a variable worth reporting as carefully as
+temperature.
 
 **The capability explanation did not survive testing.** After Study 1 the natural
 hypothesis was that position dominance reflects a small model's inability to

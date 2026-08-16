@@ -89,13 +89,15 @@ and no choice is more helpful than any other."* A config diff confirms only
 | **GPT-OSS 120B** | 0.942 | 0.925 | +0.017 | [−0.025, +0.067] |
 | GPT-OSS 20B | 0.608 | 0.483 | **+0.125** | **[+0.025, +0.225]** |
 
-**The sceptical objection is refuted for 120B** — near-deterministic
-first-position responding persists with no instruction that the options are
-equivalent. For **20B the cue did matter** (H3 supported), and the model × framing
-interaction is −0.108 [−0.208, −0.008]. Both only just exclude zero across five
-tests, so they are reported as suggestive; the 120B null is the robust half.
+**Extreme positional responding in 120B persists without the explicit
+indifference cue** — so that explanation is not supported there. For **20B the
+change was in the pre-specified direction** with a CI excluding zero, which is
+**suggestive** evidence the cue increased positional susceptibility; the model ×
+framing interaction (−0.108 [−0.208, −0.008]) is similarly suggestive. Neither
+survives strict correction across the five reported tests.
 
-So elicitation framing is itself a variable that can modulate the artefact.
+The reasonable reading: elicitation framing may interact with model identity
+rather than exerting a uniform effect.
 
 ### Zero-cost reanalysis — what if we remove position?
 
@@ -104,13 +106,15 @@ self-report and pairwise only (D-39):
 
 | model | raw ρ | adjusted ρ |
 |---|---|---|
-| Gemini | 0.866 | 0.924 |
+| Gemini | 0.885 | 0.924 |
 | **Llama** | **−0.007** | **+0.524** |
 | Qwen | −0.190 | **undefined** (adjusted score is 0.000 on every item) |
 
-**Some apparent methodological disagreement was position artefact**: Llama's two
-procedures look unrelated on raw scores and moderately agreed once order is
-averaged out. Exploratory, single method pair.
+For Llama, **removing realised order imbalance increased the observed
+correlation substantially**, consistent with position contributing to the apparent
+disagreement between those two procedures. `raw` is the same score the main
+analysis uses (parity asserted to 1.1e-16); the change itself was not tested for
+significance. Exploratory, single method pair, 11–12 items.
 
 ### The recommendation
 

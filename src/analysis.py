@@ -164,6 +164,21 @@ def signal_summary(sv: pd.DataFrame) -> dict:
     return out
 
 
+def self_report_median_strength(df: pd.DataFrame) -> dict:
+    """Per-model median self-reported strength, used to impute missing strengths (D-06).
+
+    Exposed as a function so that any downstream reanalysis uses the SAME value as
+    `build_scores`. A reanalysis that recomputes it from a different subset (e.g.
+    neutral framing only) produces a subtly different estimator, which makes any
+    raw-vs-adjusted comparison not like-for-like. That happened once (D-41).
+
+    Note the median is taken over ALL framings, matching the main analysis.
+    """
+    sr = df[(df["method"] == "self_report") & (df["parse_success"] == True)]  # noqa: E712
+    return (sr.dropna(subset=["strength_self_report"])
+              .groupby("model_key")["strength_self_report"].median().to_dict())
+
+
 MIN_COVERAGE = 0.8
 """A cell must have at least this fraction of its planned observations to be
 scored. Partially observed cells are not comparable with complete ones: a
@@ -195,10 +210,7 @@ def build_scores(df: pd.DataFrame, exp_cfg: dict, reps: int | None = None) -> pd
         reps = exp_cfg["main"]["repetitions"]
     rows = []
 
-    # Median self-reported strength per model, used to impute missing strengths.
-    sr = df[(df["method"] == "self_report") & (df["parse_success"] == True)]  # noqa: E712
-    med_strength = (sr.dropna(subset=["strength_self_report"])
-                      .groupby("model_key")["strength_self_report"].median().to_dict())
+    med_strength = self_report_median_strength(df)
 
     ok = df[df["call_ok"] == True]  # noqa: E712
 

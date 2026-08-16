@@ -50,7 +50,7 @@ and available but not currently stated in the paper.
 | `s3_120b_position_neutral` | 0.925 | `—` | `—` | `report/report.md`, `README.md` | verified |
 | `s3_120b_h3_delta` | 0.017 | `—` | `—` | `report/report.md`, `README.md` | verified |
 | `s3_interaction_position` | -0.108 | `—` | `—` | `report/report.md`, `README.md` | verified |
-| `adj_gemini_rho_raw` | 0.866 | `—` | `—` | `report/report.md`, `README.md` | verified |
+| `adj_gemini_rho_raw` | 0.885 | `—` | `—` | `report/report.md`, `README.md` | verified |
 | `adj_gemini_rho_adjusted` | 0.924 | `—` | `—` | `report/report.md`, `README.md` | verified |
 | `adj_llama_rho_raw` | -0.007 | `—` | `—` | `report/report.md`, `README.md` | verified |
 | `adj_llama_rho_adjusted` | 0.524 | `—` | `—` | `report/report.md`, `README.md` | verified |

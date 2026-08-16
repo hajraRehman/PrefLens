@@ -12,14 +12,14 @@
   "per_model": {
     "gemini-31-flash-lite": {
       "raw": {
-        "spearman_rho": 0.8664422514058513,
+        "spearman_rho": 0.8845855366865901,
         "direction_agreement": 0.875,
         "n_directed": 8,
         "sign_flip_rate": 0.125,
-        "mean_abs_disagreement": 0.4063636363636363,
-        "p_rho": 0.000999900009999,
+        "mean_abs_disagreement": 0.4063636363636364,
+        "p_rho": 0.0005999400059994001,
         "p_dir": 0.07629237076292371,
-        "null_rho_mean": -0.0009166774670458711
+        "null_rho_mean": -0.0010986875712841017
       },
       "adjusted": {
         "spearman_rho": 0.9241989846421229,
@@ -31,7 +31,7 @@
         "p_dir": 0.006199380061993801,
         "null_rho_mean": -0.0008152262685425284
       },
-      "delta_rho_adjusted_minus_raw": 0.05775673323627162,
+      "delta_rho_adjusted_minus_raw": 0.03961344795553279,
       "n_items": 11
     },
     "llama31-8b": {
