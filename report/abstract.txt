@@ -1,4 +1,4 @@
-No Signal, No Convergence: Position Artefacts in LLM Preference Elicitation
+PrefLens: Position Artefacts and Convergent Validity in LLM Preference Elicitation
 
 LLM preference measurement has no direct ground truth, so convergent validity
 across elicitation procedures is one useful source of evidence about measurement
@@ -8,7 +8,7 @@ permutation null, only Gemini-3.1-flash-lite converged above chance (p = 0.0019)
 Qwen-2.5-7B's pairwise scores reproduced the display-order draw exactly on all 12
 items. In an exploratory self-report/pairwise reanalysis, equal-weighting the two
 display orders raised Llama's observed correlation from -0.007 to +0.524,
-suggesting order imbalance can obscure cross-method agreement. Study 2
+suggesting order imbalance can obscure cross-method agreement. Study 2b
 (exact counterbalancing, provider-pinned) found the larger GPT-OSS model *more*
 position-dominated (Delta = -0.333), rejecting our pre-specified hypothesis. Extreme
 position sensitivity in GPT-OSS 120B persisted after removing the prompt's

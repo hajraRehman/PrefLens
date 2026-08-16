@@ -153,6 +153,25 @@ FORBIDDEN_PHRASES = [
     (r"separates a measured preference from an artefact|"
      r"cannot be distinguished from\s+an artefact of where",
      "position diagnostics detect order sensitivity; they do not validate preference"),
+
+    # --- study-count and provider-attribution drift after Study 3 landed ---
+    (r"(repository )?contains (only )?two studies|in\s+two studies\.",
+     "there are three studies (1, 2/2b, 3) — update the count"),
+    (r"random baseline simulated|the random baseline\b",
+     "the parametric random baseline is withdrawn; cite the matched permutation null"),
+    # Provider-pinning belongs to Study 2b, never to the original Study 2.
+    (r"study 2 \((?![^)]*unpinned)[^)]*provider-pinned",
+     "provider pinning is Study 2b, not Study 2 (D-33)"),
+    (r"study 2 substantially reduces these confounds by holding[^.]{0,60}provider",
+     "only Study 2b held the upstream provider fixed (D-33)"),
+    # Residue of the removed 0.15 threshold.
+    (r"\(0\.079,\s*2/12 items\)",
+     "'2/12 items' is residue of the removed |content| > 0.15 cut (D-35)"),
+    # Overclaims that the report has already narrowed.
+    (r"not an\s+artefact of our instruction",
+     "say the explicit-indifference-cue explanation is not supported"),
+    (r"framing does contribute in the smaller model",
+     "the 20B framing effect is suggestive, not established (D-40)"),
 ]
 
 
@@ -186,6 +205,14 @@ def test_forbidden_wording_guard_catches_known_bad_sentences():
         "there was nothing for the methods to agree about",
         "that leaves only one kind of evidence available",
         "it is what separates a measured preference from an artefact",
+        # Post-Study-3 drift.
+        "This repository contains two studies",
+        "Random baseline simulated at the actual item counts",
+        "Study 2 (exact counterbalancing, provider-pinned) found the larger model",
+        "Study 2 substantially reduces these confounds by holding family, provider fixed",
+        "the lowest content signal (0.079, 2/12 items)",
+        "so the artefact is not an artefact of our instruction there",
+        "so framing does contribute in the smaller model",
     ]
     for sentence in bad:
         t = _norm(sentence).lower()

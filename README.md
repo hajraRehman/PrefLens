@@ -23,8 +23,8 @@ Secondary questions:
 
 ## 1b. Headline results
 
-This repository contains **two studies**, and Study 2 has a provider-controlled
-replication (Study 2b) that supersedes it.
+This repository contains **three studies**. Study 2 also has a provider-controlled
+replication (**Study 2b**) that supersedes its original uncontrolled run.
 
 ### Study 1 — multi-method convergence (Qwen, Llama, Gemini)
 
@@ -188,8 +188,11 @@ preference (D-10).
 * **Temperature 1.0**, `top_p` 1.0 — the estimand is a choice probability (D-05).
 * **Position bias measured**, not assumed away: `P(A | A shown first)` vs
   `P(A | A shown second)`, per model and per method.
-* **Random baseline simulated** at the actual item/method/repetition counts, so
-  observed convergence is read against chance rather than against zero.
+* **Matched permutation null** (10,000 permutations): each method column keeps
+  its observed values while item labels are permuted independently within
+  columns, so only cross-method alignment is destroyed. Observed convergence is
+  read against that, not against zero. (An earlier parametric baseline was
+  mis-specified and is withdrawn — D-32.)
 
 Total main-run budget: **3,136 API calls** (~1.0M tokens), printed before launch.
 
@@ -301,6 +304,16 @@ python -m src.followup.runner --phase main --config configs/followup_pinned.yaml
 python -m src.followup.analysis --study-id followup_gpt_oss_provider_pinned
 ```
 
+## 8e. Study 3 — neutral-framing test (RQ4)
+
+Study 2b with one sentence deleted from the system prompt.
+
+```bash
+python -m src.followup.runner --phase main --config configs/followup_neutral.yaml --yes
+python -m src.followup.analysis --study-id followup_gpt_oss_neutral_framing
+python -m src.framing_comparison
+```
+
 ## 8d. Reproduce everything from scratch
 
 ```bash
@@ -309,8 +322,11 @@ python -m pytest tests -q                                    # full suite
 
 python -m src.analysis  --phase main --n-perm 10000          # Study 1 + permutation null
 python -m src.robustness                                     # dead-zone sensitivity
-python -m src.followup.analysis --study-id followup_gpt_oss              # Study 2
+python -m src.position_adjusted                              # position-adjusted reanalysis
+python -m src.followup.analysis --study-id followup_gpt_oss                  # Study 2
 python -m src.followup.analysis --study-id followup_gpt_oss_provider_pinned  # Study 2b
+python -m src.followup.analysis --study-id followup_gpt_oss_neutral_framing  # Study 3
+python -m src.framing_comparison                             # Study 2b vs Study 3 (RQ4)
 python -m src.plotting --phase main                          # figures 1-5
 python -m src.followup.plotting                              # figures A-D
 python -m src.claims                                         # derived constants
@@ -324,7 +340,8 @@ reproduce any reported number.
 
 **Raw data directories:** `data/raw/pilot/`, `data/raw/main/`,
 `data/raw/manipulation_check/` (Study 1); `data/raw/followup_gpt_oss/` (Study 2);
-`data/raw/followup_gpt_oss_provider_pinned/` (Study 2b).
+`data/raw/followup_gpt_oss_provider_pinned/` (Study 2b);
+`data/raw/followup_gpt_oss_neutral_framing/` (Study 3).
 
 
 ## 9. Analysis
@@ -335,7 +352,7 @@ python -m src.analysis --phase main
 
 Produces normalised score matrices, all convergence metrics with bootstrap CIs,
 position-bias diagnostics, response-quality tables, the framing analysis, the
-strength-vs-stability test and the random baseline. Writes
+strength-vs-stability test and the matched permutation null. Writes
 `results/main/summary.json` plus CSVs in `results/tables/`.
 
 ## 10. Reproduce the figures

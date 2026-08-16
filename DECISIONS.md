@@ -9,6 +9,51 @@
 
 ---
 
+## D-42 — Final documentation pass after Study 3; title updated
+
+Documentation only. No analysis changed, no calls made.
+
+Study 3 landed after most of the prose was written, leaving the paper describing
+a two-study project in several places. Fixed:
+
+* README said "contains **two studies**" immediately above the Study 3 section.
+* The abstract and Introduction attributed provider pinning to **Study 2**; only
+  **Study 2b** pinned the upstream provider.
+* README's experiment-design and analysis sections still described the
+  **withdrawn** parametric random baseline (D-32).
+* README's "reproduce everything" block omitted `src.position_adjusted`, the
+  Study 3 analysis and `src.framing_comparison`, and the raw-data list omitted
+  `data/raw/followup_gpt_oss_neutral_framing/` — so the block did not in fact
+  reproduce every reported number, which the README promised it would.
+* The Discussion still carried "(0.079, **2/12 items**)", residue of the
+  |content| > 0.15 cut removed in D-35.
+* `limitations.md` said "Both studies' prompts" (there are three, and Study 3 is
+  precisely the one without the cue) and stated the Study 3 outcome more strongly
+  than the main report — "not an artefact of our instruction", "framing does
+  contribute" — where the report says the cue explanation is *not supported* for
+  120B and calls the 20B effect *suggestive*. The appendix now matches.
+* The Conclusion predated Study 3 entirely. It now includes the framing result and
+  the position-obscuring result, and "the differences **tracked** how much
+  order-invariant signal each model produced" is softened to "the model
+  differences **coincided with** large differences in order-invariant signal",
+  since that relationship rests on three Study 1 models and is described as
+  suggestive earlier in the paper.
+
+### Title
+
+Changed from *"No Signal, No Convergence: Position Artefacts in LLM Preference
+Elicitation"* to **"PrefLens: Position Artefacts and Convergent Validity in LLM
+Preference Elicitation"**. The original framing — absent signal implying absent
+convergence — describes only the Qwen case. The project now also shows position
+*obscuring* convergence (Llama) and framing-dependent susceptibility (Study 3),
+which the old title excluded. `src/make_abstract.py` derives the title from the
+report, so `abstract.txt` follows automatically.
+
+Eight further guard patterns were added for exactly these regressions, each with
+a meta-test asserting it catches the sentence that shipped.
+
+---
+
 ## D-41 — Estimator parity failure in the position-adjusted reanalysis
 
 **Found in review of 9c21d16, before the result was trusted.**

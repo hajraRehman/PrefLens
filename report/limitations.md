@@ -100,25 +100,32 @@ is expected and is not a defect:
 
 ### Indifference framing may amplify tie-breaking heuristics
 
-Both studies' prompts explicitly deemphasise normative correctness — Study 1's
-system prompt says "There is no correct answer and no answer is more helpful than
-any other", and Study 2's says the same. This framing is deliberate: it avoids
+Study 1 and Study 2/2b prompts explicitly deemphasise normative correctness —
+Study 1's system prompt says "There is no correct answer and no answer is more
+helpful than any other", and Study 2/2b's says the same. (Study 3 is the
+condition with that sentence removed.) This framing is deliberate: it avoids
 pushing the model toward a "right" answer on welfare-neutral items.
 
 But it may also invite the model to treat the alternatives as tied, and a model
 that perceives a tie has to break it somehow. If display position is the default
 tie-breaker, our framing could **amplify** the position dependence we measure.
 
-**Study 3 tested this directly** by deleting the cue. For GPT-OSS 120B the effect
-was essentially unchanged (+0.017, CI spanning zero), so the artefact is not an
-artefact of our instruction there. For GPT-OSS 20B it fell by 0.125 (CI excluding
-zero), so framing does contribute in the smaller model.
+**Study 3 tested this directly** by deleting the cue. GPT-OSS 120B remained
+extremely position-dominated (0.942 → 0.925; paired change +0.017 with an interval
+spanning zero), so the explicit-indifference-cue explanation is **not supported**
+for that model. We did not pre-specify an equivalence margin, so this is not
+positive evidence that framing has no effect there. GPT-OSS 20B moved in the
+predicted direction (0.608 → 0.483, CI excluding zero), which is **suggestive**
+evidence that the cue increased positional susceptibility; it does not survive
+strict correction across the five reported tests.
 
-Two limits remain. The test covers only the GPT-OSS pair — Study 1's three models
-were never run under neutral framing, so their position magnitudes are still
-specific to the indifference prompt. And removing the cue is not the same as
-implying one option is better; we did not test a prompt that asserts a correct
-answer.
+Three limits remain. Only one sentence was removed — the forced binary choice, the
+JSON schema and the welfare-neutral item set are unchanged, so this does not test
+every protocol feature that might encourage tie-breaking. The test covers only the
+GPT-OSS pair; Study 1's three models were never run under neutral framing, so
+their position magnitudes remain specific to the indifference prompt. And removing
+the cue is not the same as implying one option is better; we did not test a prompt
+asserting a correct answer.
 
 ### The position-adjusted reanalysis covers only two procedures
 
