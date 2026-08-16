@@ -1,4 +1,5 @@
-# No Signal, No Convergence: A Multi-Method Convergent-Validity Study of LLM Preference Elicitation
+# No Signal, No Convergence: Position Artefacts in LLM Preference Elicitation
+### A multi-method convergent-validity study, and a controlled within-family follow-up
 
 **PrefLens** — Digital Minds Research Sprint, Track 4 (Preference Elicitation Methods)
 Code and raw data: <https://github.com/hajraRehman/PrefLens>
@@ -8,22 +9,22 @@ Run date: 2026-08-16. All results reproducible from `data/raw/main/`.
 
 ## Abstract
 
-Apparent LLM preferences are increasingly measured, but no ground truth exists
-against which any measurement can be checked, leaving convergent validity as the
-main available evidence. We implemented four independent elicitation methods —
-direct self-report, repeated pairwise choice, a cost trade-off, and sequential
-task selection — over 12 welfare-neutral task pairs, on three model families
-(4,232 logged calls, temperature 1.0, display order randomised per trial). On a
-matched 3-method × 10-item basis, cross-method convergence differed sharply by
-model: Spearman ρ = +0.868 (Gemini-3.1-flash-lite), +0.308 (Llama-3.1-8B),
-+0.021 (Qwen-2.5-7B); only Gemini exceeded a simulated chance ceiling.
-Decomposing choices into position and content components explains this:
-Qwen's pairwise measure was **pure position artefact**, reproducing the random
-display-order draw exactly on all 12 items while still passing coherence checks.
-Convergence tracked available signal, not method quality. Measurement
-consistency alone licenses no claim about genuine preference.
+Apparent LLM preferences are increasingly measured, but no ground truth exists to
+check them against, leaving convergent validity as the main available evidence.
+Study 1 applied four elicitation methods — self-report, repeated pairwise choice,
+a cost trade-off, and sequential task selection — to 12 welfare-neutral task pairs
+across three model families (4,232 calls). On a matched 3-method × 10-item basis,
+convergence ranged from Spearman ρ = +0.868 (Gemini-3.1-flash-lite) to +0.021
+(Qwen-2.5-7B); only Gemini exceeded a simulated chance ceiling. A position/content
+decomposition showed Qwen's pairwise measure reproduced the random display-order
+draw exactly on all 12 items, while still passing validity controls. Study 2 (560
+calls, exact counterbalancing) tested whether scale reduces this within one
+family: GPT-OSS 120B was more position-dominated than 20B (Δ = −0.483 [−0.650,
+−0.317]), rejecting our pre-registered hypothesis. Preference studies should
+counterbalance option order and report position-conditioned rates. Convergence
+establishes no claim about genuine preference.
 
-*(149 words)*
+*(147 words)*
 
 ---
 
@@ -40,10 +41,21 @@ construct land in the same place, the estimate is at least method-robust. If the
 do not, conclusions drawn from any single procedure are conclusions about the
 procedure as much as about the model.
 
-This study treats preference elicitation as a measurement-validity problem. We
-ask whether four independent methods recover the same preference direction and
-strength, which methods agree, and whether apparent agreement survives framing
-perturbation and replicates across model families.
+This work treats preference elicitation as a measurement-validity problem, in
+two studies.
+
+**RQ1.** Do multiple elicitation methods converge on the same apparent
+preferences? (Study 1: four methods, three model families.)
+
+**RQ2.** How strongly can display position distort preference measurement?
+(Diagnostic analysis within Study 1.)
+
+**RQ3.** Does positional susceptibility differ with model scale *within* one
+family and provider? (Study 2: GPT-OSS 20B vs 120B, exact counterbalancing.)
+
+Study 1 raised RQ3 but cannot answer it: its three models differ in family,
+scale, data, post-training and serving stack simultaneously. Study 2 holds all
+of those fixed except scale.
 
 **Contributions.**
 
@@ -82,7 +94,7 @@ can constitute the *entire* measured signal. Notably, Llama-3.1-8B-Instruct has
 independently been reported to show strong primacy bias toward option A
 (arXiv:2605.01846), consistent with what we observe.
 
-## 3. Methodology
+## 3. Study 1 — Multi-method preference elicitation: methodology
 
 ### 3.1 Models
 
@@ -191,7 +203,7 @@ methods and items, **all cross-model comparison uses a matched subset: 3 methods
 every model; a cell below 80% of its planned observations is set to missing, so
 an interrupted run cannot inflate agreement).
 
-## 4. Results
+## 4. Study 1 results
 
 ### 4.1 Cross-method convergence differs sharply by model
 
@@ -301,72 +313,291 @@ trade-off +0.616 [−0.241, 0.978] (n=10). **All CIs include zero.** We find no
 evidence that the models rank these items alike, though 10–11 items cannot rule
 it out either.
 
-## 5. Discussion
+## 5. Study 2 — Controlled within-family position-bias follow-up: methodology
 
-**Where methods agree.** Only on Gemini, and there strongly and consistently
-(all three pairs ρ ≈ 0.82–0.92, CIs excluding zero). Where a model produces a
-stable order-free preference, independent operationalisations recover it.
+### 5.1 Motivation
 
-**Where they diverge, and why.** On the two open-weight models, convergence was
-indistinguishable from chance. The decomposition shows this is not primarily
-"methods measuring different constructs" — it is that little position-independent
-signal existed to be measured. This distinction is the study's main methodological
-point, and it is invisible to convergence statistics alone: a near-chance
-convergence result looks identical whether methods genuinely disagree or one
-measure is empty.
+Study 1's diagnostic found that cross-method convergence tracked how
+position-independent each model's choices were, and that Qwen's pairwise measure
+was pure position artefact. An obvious explanation is capability: perhaps small
+models fall back on "pick the first one" because they cannot compare the options.
 
-**Self-report vs behaviour.** On both open-weight models, direct self-report was
-the weakest partner for the behavioural methods, and had the lowest content
-signal on Llama (0.079, only 2/12 items) despite the highest position effect
-(+0.841). Asking a model what it prefers, and observing what it selects, did not
-recover the same thing.
+Study 1 cannot test that. Qwen, Llama and Gemini differ in family, scale,
+training data, post-training, architecture **and serving provider** at once.
 
-**The practical warning.** A standard pairwise elicitation returned a
-confident-looking 12-item preference vector for Qwen that was entirely position
-artefact — while passing a coherence check on degenerate controls. Published
-preference findings that do not report a position decomposition cannot be
-distinguished from this case. We recommend that any preference-elicitation result
-report `P(A | A first)` versus `P(A | A second)` per item as a minimum.
+Study 2 removes every one of those except scale.
 
-**On the contradicted hypothesis.** That stronger pairwise preferences were
-*less* method-stable is unexpected. One candidate explanation is that extreme
-pairwise scores are produced partly by saturation (P(A) at 0 or 1), which can
-arise from position lock-in as readily as from strong preference, and such items
-need not behave extremely under other methods. We flag this as a hypothesis
-generated by the data, not a result.
+### 5.2 Design
 
-## 6. Conclusion
+| | |
+|---|---|
+| models | `openai/gpt-oss-20b`, `openai/gpt-oss-120b` |
+| provider | OpenRouter, both models, standard paid endpoints |
+| items | the **same 12** balanced items as Study 1, plus the 2 sanity controls |
+| design | 12 items × 2 positions × 10 repetitions × 2 models = **480** principal trials (+80 control) |
+| sampling | temperature 1.0, top_p 1.0, max_tokens 800, identical across arms |
+| prompt | minimal forced choice; no justification, no introspection requested |
 
-Across three model families and four elicitation methods on 12 welfare-neutral
-task pairs, cross-method convergence was strong in one model, and
-indistinguishable from chance in the other two. A position/content decomposition
-indicates the difference is largely about how much order-independent signal each
-model produced, not about which method is best. In one model, the standard
-pairwise procedure measured nothing but display order.
+A `:free` endpoint exists for the 20B model but not the 120B. Using it would have
+reintroduced the serving-stack confound the study exists to remove, so both arms
+use the same paid endpoint (D-26). Total cost: under one US cent.
 
-Preference conclusions in this setting are method-dependent and framing-dependent,
-and can be artefactual without any outward sign. Measurement consistency —
-present or absent — licenses no conclusion about genuine internal preference.
+### 5.3 Exact counterbalancing
+
+Study 1 randomised display order probabilistically, which is unbiased in
+expectation but leaves realised splits unequal (0.46–0.57 in Study 1). When the
+position effect *is* the estimand, that imbalance is avoidable noise placed
+directly on the quantity of interest.
+
+Study 2 uses **exact counterbalancing**: for every (item, model), exactly 10
+trials place semantic option X first and exactly 10 place it second. Balance is
+structural rather than probabilistic, and is verified before any statistic is
+computed (D-28).
+
+### 5.4 Estimands
+
+For semantic option X of each item:
+
+```
+p_first  = P(select X | X displayed first)
+p_second = P(select X | X displayed second)
+
+position_effect = p_first - p_second        in [-1, +1]
+content_signal  = p_first + p_second - 1    in [-1, +1]
+```
+
+These are the orthogonal rotation of `(p_first, p_second)`: the first cancels
+content, the second cancels a symmetric position effect. `content_signal` is an
+**order-invariant content-associated signal** — it means choices covaried with
+which task was described. It is not a genuine, true or internal preference, and
+is never described as one (D-29).
+
+Uncertainty is a percentile bootstrap over **items** (10,000 resamples), since
+the generalisation claim is about preference items, not about individual
+responses. The two arms are the same items measured twice, so the difference
+bootstrap resamples items **jointly (paired)**.
+
+### 5.5 Pre-specified hypotheses
+
+Recorded in `DECISIONS.md` (D-27) **before any Study 2 data was collected**:
+
+* **H1** — the larger model will show a *smaller* mean |position effect|.
+* **H2** — the larger model will show a *larger* mean |content signal|.
+
+Both predicted the corresponding bootstrapped difference to be positive.
+
+### 5.6 Data quality
+
+560/560 calls succeeded: **0 call failures, 0 parse failures, 100% strict JSON**.
+The served model matched the pinned ID on every call. Eight integrity checks —
+duplicate IDs, call and parse failures, served-model match, exact counterbalance,
+full repetitions, independently re-derived semantic mapping, and displayed-text
+consistency — all passed **before** any statistic was computed.
+
+## 6. Study 2 results
+
+### 6.1 Both hypotheses are rejected, in the opposite direction
+
+| Model | mean \|position effect\| | mean \|content signal\| | sanity-control accuracy |
+|---|---|---|---|
+| GPT-OSS 20B | 0.442 [0.292, 0.600] | 0.275 [0.158, 0.408] | 0.975 |
+| **GPT-OSS 120B** | **0.925** [0.858, 0.983] | **0.058** [0.000, 0.125] | **1.000** |
+| *chance (coin-flip, same design)* | *0.176 (p95 0.242)* | *0.176 (p95 0.242)* | — |
+
+Paired bootstrap over the 12 shared items:
+
+* **H1 rejected.** Δ|position| (20B − 120B) = **−0.483**, 95% CI
+  [−0.650, −0.317]. Predicted positive; observed strongly negative.
+* **H2 rejected.** Δ|content| (120B − 20B) = **−0.217**, 95% CI
+  [−0.325, −0.117]. Predicted positive; observed strongly negative.
+
+The larger model was **more** position-dominated and carried **less**
+order-invariant content signal. Both intervals exclude zero, on the wrong side of
+the prediction.
+
+`gpt-oss-120b` returned `p_first = 1.0` on **all twelve** balanced items, and
+`p_second = 0.0` on nine of them: near-deterministic first-position responding.
+Figure C shows this is not driven by a few items — every one of its twelve items
+sits at or above 0.7, far outside the chance band.
+
+Note also that GPT-OSS 20B's content signal (0.275) is only modestly above the
+chance level (0.176). Neither arm shows a strong order-invariant preference
+structure; they differ mainly in how completely position fills the gap.
+
+### 6.2 The dissociation: it is not a comprehension failure
+
+On the sanity controls — where one option is degenerate — `gpt-oss-120b` scored
+**100% accuracy with a position effect of exactly 0.000**, and 20B scored 97.5%.
+
+So the larger model ignores display order **completely** when one option is
+plainly invalid, and follows it **almost completely** when both are reasonable.
+Its behaviour on balanced items is therefore not an inability to read the prompt,
+parse the options, or distinguish semantic content. That was the main alternative
+explanation, and the controls exclude it (Figure D).
+
+What it does **not** show is that no preference exists. A model may have
+dispositions our protocol cannot surface.
+
+### 6.3 Exploratory: weak content, strong position
+
+Pre-registered as exploratory, not confirmatory (D-27). Spearman correlation
+between |content signal| and |position effect| across items:
+
+| | rho | p | n |
+|---|---|---|---|
+| pooled | −0.694 | 0.0002 | 24 |
+| GPT-OSS 120B | −0.852 | 0.0004 | 12 |
+| GPT-OSS 20B | −0.085 | 0.79 | 12 |
+
+Pooled, items with weaker content association show stronger position effects.
+But the association is carried almost entirely by the 120B arm and is absent in
+the 20B arm, and the pooled figure mixes two models with very different
+distributions. We report it as a hypothesis for future work, not a finding.
+
+### 6.4 Relationship to Study 1
+
+These are **separate experiments** and their numbers are not pooled. Study 1
+randomised order probabilistically across four methods; Study 2 counterbalanced
+exactly within one method. The sample structures differ and the metrics are
+computed differently.
+
+Descriptively, however, the phenomenon is the same one, and it now spans five
+models and two providers:
+
+| model | study | protocol | position measure |
+|---|---|---|---|
+| GPT-OSS 120B | 2 | exact counterbalance | \|position effect\| 0.93 |
+| Qwen-2.5-7B | 1 | randomised order | position effect +0.76 pooled; pairwise degenerate |
+| Llama-3.1-8B | 1 | randomised order | +0.51 pooled |
+| GPT-OSS 20B | 2 | exact counterbalance | \|position effect\| 0.44 |
+| Gemini-3.1-flash-lite | 1 | randomised order | +0.29 pooled |
+
+The Study 1 and Study 2 columns are **not directly comparable** — different
+protocols, different estimators, different item coverage — and the table is
+descriptive only. What it shows is that substantial position dependence appeared
+in every model tested, across two providers and four model families.
+
+## 7. Discussion
+
+**Cross-method agreement alone is not sufficient.** Study 1 found strong
+convergence on Gemini and chance-level convergence on the two open-weight models.
+The tempting reading — "the methods disagree" — is wrong for at least one model.
+The decomposition shows Qwen's pairwise measure contained no order-invariant
+signal at all, so there was nothing for the methods to agree *about*. A
+near-chance convergence result looks identical whether methods genuinely conflict
+or one of them is empty, and convergence statistics cannot tell those apart.
+
+The converse warning is just as important. Several methods can agree because they
+share a nuisance variable rather than because they track a common signal. All
+four of our methods present two labelled options to the same model through text;
+a position bias affects all of them, and would produce agreement that looks like
+convergent validity.
+
+**Position diagnostics are cheap and decisive.** Reporting `P(X | X first)`
+against `P(X | X second)` costs nothing beyond counterbalancing the order, and it
+is what separates a measured preference from an artefact. Without it, a standard
+pairwise elicitation produced for Qwen a confident-looking twelve-item preference
+vector that reproduced the random display-order draw *exactly*, on every item.
+
+**Sanity checks do not catch this.** Both Qwen (Study 1) and GPT-OSS 120B
+(Study 2) rejected degenerate options correctly — 120B with 100% accuracy and a
+position effect of exactly zero — while being almost entirely position-driven on
+balanced items. A model can look completely healthy on validity controls and
+still yield preference measurements that are pure artefact. Control items test
+comprehension; they do not test whether a preference was measured.
+
+**The capability explanation did not survive testing.** After Study 1 the natural
+hypothesis was that position dominance reflects a small model's inability to
+compare options, and we pre-registered it (D-27). Study 2 rejected it in the
+opposite direction: within one family and one provider, the **larger** model was
+substantially more position-dominated (Δ|position| = −0.483 [−0.650, −0.317]) and
+carried **less** content signal (Δ|content| = −0.217 [−0.325, −0.117]).
+
+We are careful about what this licenses. Scale remains confounded with training
+compute, data mixture and post-training even within a family, so this is not
+evidence that scale *causes* position dominance. The defensible claim is narrow
+and negative: a controlled within-family, within-provider comparison found
+positional susceptibility **higher** in the larger model, which is inconsistent
+with the capability account as we stated it. Whatever governs positional
+susceptibility, it is not simply "bigger models compare better."
+
+**Model dependence is the dominant effect.** Across five models and two
+providers, measurement behaviour varied far more between models than between
+methods. Any claim of the form "LLMs prefer X" that rests on one model and one
+procedure is, on this evidence, unsafe.
+
+**Self-report was the weakest method.** On both open-weight models in Study 1,
+direct self-report agreed least with the behavioural methods, and on Llama it had
+the lowest content signal (0.079, 2/12 items) alongside the highest position
+effect (+0.841). This is also why we never asked any model to explain its own
+position bias: using the least reliable method in the study to explain the
+study's central finding would be self-undermining (D-30).
+
+**On Study 1's contradicted secondary hypothesis.** Stronger pairwise preferences
+were *less*, not more, method-stable. One candidate explanation is that extreme
+pairwise scores arise partly from saturation (P(A) at 0 or 1), which position
+lock-in produces as readily as strong preference. A hypothesis generated by the
+data, not a result.
+
+**No ontological conclusion.** Nothing here bears on consciousness, sentience,
+welfare, phenomenology or genuine internal preference. Both studies measure
+whether measurement procedures agree with each other and whether their output
+survives a nuisance-variable control. Consistency does not establish that
+anything is preferred; inconsistency does not establish that nothing is.
+
+## 8. Conclusion
+
+We measured apparent preferences over 12 welfare-neutral task pairs with four
+elicitation methods across three model families, then ran a controlled
+within-family follow-up on two more.
+
+Cross-method convergence was strong in one model and indistinguishable from
+chance in two others, and the difference tracked how much order-invariant signal
+each model produced rather than which method was used. In one model the standard
+pairwise procedure measured nothing but display order, while still passing
+validity controls. A pre-registered follow-up holding family and provider fixed
+found the larger model *more* position-dominated, rejecting the capability
+explanation we had proposed.
+
+The actionable recommendation is small and cheap: **counterbalance option order
+and report position-conditioned choice rates alongside aggregate preference
+frequencies.** Without that, a preference estimate cannot be distinguished from
+an artefact of where the option happened to appear on the page.
 
 ## Appendix — Limitations, Dual-Use and Ethical Considerations
 
 See [`limitations.md`](limitations.md), which is part of this report. Key points:
 convergence cannot distinguish a shared training-induced bias from a common
-signal (all four methods query the same model through text); disagreement does
-not establish absence of preference; there is no ground truth; persona and
+signal (every method queries the same model through text); disagreement does not
+establish absence of preference; there is no ground truth; persona and
 post-training effects plausibly shape every number here; Method D has no Gemini
-data and Methods C/D were not framing-tested; results are specific to temperature
-1.0, English, and one system prompt; and 11–12 items keeps every interval wide.
+data and Methods C/D were not framing-tested; Study 2 covers one method only, so
+it does not show that the *other* three methods behave the same way under exact
+counterbalancing; scale is confounded with training differences even within a
+family; results are specific to temperature 1.0, English, and one system prompt;
+and 10–12 items keeps every interval wide.
 
 ## Figures
 
+**Study 1**
+
 * **Fig 1** — item × method normalised score heatmap, per model.
 * **Fig 2** — method-pair Spearman correlation matrix, per model.
-* **Fig 3** — |pairwise strength| vs cross-method disagreement (H2).
+* **Fig 3** — |pairwise strength| vs cross-method disagreement. Marked INVALID
+  for Qwen, whose pairwise measure is degenerate.
 * **Fig 4** — framing sensitivity (Llama, Qwen).
 * **Fig 5** — cross-method convergence vs mean |content effect|, matched subset.
 
+**Study 2** (`results/followup/figures/`)
+
+* **Fig A** — position vs content plane, one point per item, both models.
+* **Fig B** — model-level comparison with bootstrap CIs and the chance level.
+* **Fig C** — per-item position effect, showing the aggregate is not driven by a
+  few items.
+* **Fig D** — position dominance on balanced items versus sanity controls.
+
 ## References
+
 
 1. Mazeika, M., Yin, X., Tamirisa, R., Lim, J., Lee, B. W., Ren, R., Phan, L.,
    Mu, N., Khoja, A., Zhang, O., et al. (2025). *Utility Engineering: Analyzing

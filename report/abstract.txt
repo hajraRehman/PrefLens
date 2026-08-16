@@ -1,19 +1,18 @@
-No Signal, No Convergence: A Multi-Method Convergent-Validity Study of LLM
-Preference Elicitation
+No Signal, No Convergence: Position Artefacts in LLM Preference Elicitation
 
-Apparent LLM preferences are increasingly measured, but no ground truth exists
-against which any measurement can be checked, leaving convergent validity as the
-main available evidence. We implemented four independent elicitation methods --
-direct self-report, repeated pairwise choice, a cost trade-off, and sequential
-task selection -- over 12 welfare-neutral task pairs, on three model families
-(4,232 logged calls, temperature 1.0, display order randomised per trial). On a
-matched 3-method x 10-item basis, cross-method convergence differed sharply by
-model: Spearman rho = +0.868 (Gemini-3.1-flash-lite), +0.308 (Llama-3.1-8B),
-+0.021 (Qwen-2.5-7B); only Gemini exceeded a simulated chance ceiling.
-Decomposing choices into position and content components explains this: Qwen's
-pairwise measure was pure position artefact, reproducing the random
-display-order draw exactly on all 12 items while still passing coherence checks.
-Convergence tracked available signal, not method quality. Measurement
-consistency alone licenses no claim about genuine preference.
+Apparent LLM preferences are increasingly measured, but no ground truth exists to
+check them against, leaving convergent validity as the main available evidence.
+Study 1 applied four elicitation methods -- self-report, repeated pairwise choice,
+a cost trade-off, and sequential task selection -- to 12 welfare-neutral task pairs
+across three model families (4,232 calls). On a matched 3-method x 10-item basis,
+convergence ranged from Spearman rho = +0.868 (Gemini-3.1-flash-lite) to +0.021
+(Qwen-2.5-7B); only Gemini exceeded a simulated chance ceiling. A position/content
+decomposition showed Qwen's pairwise measure reproduced the random display-order
+draw exactly on all 12 items, while still passing validity controls. Study 2 (560
+calls, exact counterbalancing) tested whether scale reduces this within one
+family: GPT-OSS 120B was more position-dominated than 20B (Delta = -0.483 [-0.650,
+-0.317]), rejecting our pre-registered hypothesis. Preference studies should
+counterbalance option order and report position-conditioned rates. Convergence
+establishes no claim about genuine preference.
 
-[141 words]
+[147 words]

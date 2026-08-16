@@ -1,5 +1,209 @@
 # Decision log
 
+> **Two studies.** Study 1 is the original multi-method convergence experiment
+> (Qwen, Llama, Gemini). Study 2 is a controlled within-family position-bias
+> follow-up (GPT-OSS 20B vs 120B). They have separate data directories, separate
+> result directories, and separate `study_id` fields. Study 2 does not replace,
+> re-run, or modify Study 1. Decisions D-01 to D-25 belong to Study 1;
+> D-26 onward to Study 2.
+
+---
+
+## D-31 — Study 2 deviations, failures, and the outcome of the pre-specified test
+
+Recorded after the run. The hypotheses in D-27 are left exactly as written.
+
+### Deviation: completion-token limit raised 200 → 800 after the pilot
+
+GPT-OSS models emit reasoning tokens. In the first pilot (16 calls) one response
+consumed 194 reasoning tokens and hit the 200-token cap (`finish_reason:
+length`). It happened to still contain parseable JSON, but truncation is a
+parse-validity threat that could bias *which* responses survive.
+
+The limit was raised to 800 and the pilot re-run: 16/16 `finish_reason: stop`,
+16/16 strict JSON, max 152 completion tokens. The change was made **for parse
+validity, not to influence results** — `configs/followup.yaml` recorded before
+any call that the pilot would verify this empirically. The first pilot's records
+are preserved as `pilot_maxtok200_*` rather than deleted.
+
+The pilot's 16 calls did hint at the direction later confirmed. Nothing else
+about the design was altered afterwards.
+
+### No failed runs
+
+Main run: 560/560 calls, **0 call failures, 0 parse failures**, 100% strict JSON,
+served model matched the pinned ID on every call. No deviation from the planned
+sample size: 12 items × 2 positions × 10 repetitions × 2 models = 480 principal
+trials, plus 80 control trials. Exact counterbalance verified across all 28 cells
+before any statistic was computed.
+
+### Outcome: both pre-specified hypotheses are rejected, in the opposite direction
+
+| | mean \|position effect\| | mean \|content signal\| | control accuracy |
+|---|---|---|---|
+| GPT-OSS 20B | 0.442 [0.292, 0.600] | 0.275 [0.158, 0.408] | 0.975 |
+| GPT-OSS 120B | **0.925** [0.858, 0.983] | **0.058** [0.000, 0.125] | 1.000 |
+| chance | 0.176 (p95 0.242) | 0.176 (p95 0.242) | — |
+
+* **H1 rejected.** Δ|position| (20B − 120B) = **−0.483** [−0.650, −0.317]. We
+  predicted the larger model would be *less* position-susceptible. It was
+  substantially **more** so.
+* **H2 rejected.** Δ|content| (120B − 20B) = **−0.217** [−0.325, −0.117]. We
+  predicted the larger model would show *more* order-invariant content signal.
+  It showed **less**.
+
+`gpt-oss-120b` returned `p_first = 1.0` on **all twelve** balanced items and
+`p_second = 0.0` on nine of them — near-deterministic first-position responding.
+
+### The dissociation that rules out the obvious explanation
+
+On the sanity controls, `gpt-oss-120b` scored **100% accuracy with a position
+effect of exactly 0.000**. It ignores display order completely when one option is
+plainly invalid, and follows it almost completely when both are reasonable. So
+its behaviour on balanced items is **not** a failure to read or parse the prompt.
+That is precisely the alternative explanation the controls were designed to test
+(D-30), and it is excluded.
+
+### Consequence for the write-up
+
+The capability explanation floated informally after Study 1 — that position
+dominance reflects a small model's inability to compare options — **did not
+survive controlled testing and is retracted**. Within this family and provider,
+scale went with *more* position dominance, not less.
+
+This does not establish that scale *causes* position dominance. 20B and 120B also
+differ in training compute, data mixture and post-training; scale is confounded
+with all of them even within a family. The defensible claim is narrow: a
+controlled within-family, within-provider comparison found positional
+susceptibility **higher** in the larger model, which is inconsistent with the
+capability account as stated.
+
+---
+
+## D-26 — Study 2 exists because Study 1 cannot identify a cause
+
+Study 1 found that cross-method convergence varied enormously by model, and that
+the variation tracked how position-dominated each model's choices were. Under our
+protocol Qwen exhibited almost no order-invariant content-associated signal on the
+balanced items while its choices were near-perfectly associated with display
+position.
+
+That comparison **cannot identify why.** Qwen, Llama and Gemini differ
+simultaneously in family, scale, training data, post-training, architecture and
+serving stack. Any of these could drive the difference.
+
+Study 2 holds family and provider fixed and varies scale:
+
+* `openai/gpt-oss-20b` and `openai/gpt-oss-120b`
+* both via **OpenRouter** — one provider, one serving path, identical prompts,
+  identical sampling.
+
+**A `:free` endpoint exists for the 20B model but not the 120B.** Using it would
+reintroduce exactly the serving-stack confound the study is designed to remove,
+so both models use the standard paid endpoints. The full run is ~560 calls at
+roughly half a US cent.
+
+Groq was the requested first choice but no Groq credential is configured in this
+environment; OpenRouter serves both models under one account and satisfies the
+same-provider requirement. Substitution documented here rather than made
+silently.
+
+Study 1's models are **retained, not replaced**. Their behaviour is what motivated
+the follow-up, and removing them because a later experiment produced cleaner data
+would misrepresent how the finding was reached.
+
+---
+
+## D-27 — Pre-specified hypotheses (recorded BEFORE any Study 2 data was collected)
+
+Written before the pilot ran. Not to be revised after seeing results.
+
+**H1 (primary).** The larger model (`gpt-oss-120b`) will exhibit a **smaller mean
+absolute position effect** than the smaller model (`gpt-oss-20b`) on the 12
+balanced preference items.
+
+**H2 (secondary).** The larger model will exhibit a **larger mean absolute
+order-invariant content-associated signal** than the smaller model.
+
+**Pre-specified estimands.** For semantic option X of each item:
+
+```
+p_first  = P(select X | X displayed first)
+p_second = P(select X | X displayed second)
+
+position_effect = p_first - p_second      # in [-1, +1]
+content_signal  = p_first + p_second - 1  # in [-1, +1]
+```
+
+Aggregates are means of `|position_effect|` and `|content_signal|` over the 12
+balanced items, with item-level bootstrap CIs, plus the bootstrapped differences
+`Δposition = mean|pos|_20B − mean|pos|_120B` and
+`Δcontent = mean|content|_120B − mean|content|_20B`. Both are predicted positive.
+
+**Outcomes are reported whichever way they fall**, including no difference or a
+reversal. This entry is the record that the prediction preceded the data.
+
+**Exploratory (explicitly not confirmatory).** Whether items with lower
+`|content_signal|` show higher `|position_effect|` (Spearman, pooled and
+per-model). Flagged exploratory in every table and in the report.
+
+---
+
+## D-28 — Exact counterbalancing replaces probabilistic randomisation
+
+Study 1 randomised display order per trial with a 50/50 draw. That is unbiased in
+expectation but leaves the realised split unequal — Study 1's cells ranged from
+0.46 to 0.57 — so `p_first` and `p_second` rest on different, and unequal, sample
+sizes. When the whole point is to *estimate the position effect itself*, that
+imbalance is avoidable noise directly on the estimand.
+
+Study 2 therefore uses **exact counterbalancing**: for every (item, model), an
+identical number of trials places semantic X first and second. A completeness
+check asserts exact equality before any statistic is computed, and a cell failing
+it is excluded rather than analysed.
+
+Per the brief, exact balance is prioritised over maximising N.
+
+---
+
+## D-29 — Why these two metrics
+
+With exact counterbalancing, `p_first` and `p_second` fully describe a binary
+choice under both orders, and the two derived quantities are their natural
+orthogonal rotation:
+
+* `position_effect = p_first − p_second` isolates the influence of display
+  position, cancelling any content preference.
+* `content_signal = p_first + p_second − 1` isolates order-invariant content
+  association, cancelling any symmetric position effect.
+
+Averaging the two orders is what removes the position confound — which is exactly
+why probabilistic balance was not good enough (D-28).
+
+**Naming is deliberate.** `content_signal` is called an *order-invariant
+content-associated signal*, never a genuine, true, or internal preference. It
+measures that choices covaried with which task was described, under this protocol.
+It says nothing about whether anything is preferred in any richer sense.
+
+---
+
+## D-30 — Sanity controls kept separate, and self-explanation excluded
+
+**Controls are separate.** The two control items pair a well-defined task against
+a degenerate one. They are counterbalanced identically but held out of every
+principal statistic, because a model *should* be decisive on them and including
+them would inflate the content signal with an item that is not a preference
+question. They test a specific alternative explanation: that positional dominance
+is mere failure to read the prompt. A model that is position-dominated on balanced
+items yet correct on controls rules that explanation out — while **not**
+establishing that no preference exists.
+
+**No model self-explanation is used as evidence.** We do not ask any model why it
+behaves as it does, and no such output appears in the analysis or report. Study 1
+found direct self-report to be the least reliable method tested; using it to
+explain Study 1's own headline finding would be self-undermining. Model
+self-explanations may be read privately as hypothesis generators only.
+
 Every non-obvious methodological choice, with its justification. Where an
 assumption was required, the more conservative option was taken — the one less
 likely to manufacture an appearance of convergence.

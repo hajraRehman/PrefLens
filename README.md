@@ -21,10 +21,13 @@ Secondary questions:
 4. How sensitive is cross-method convergence to superficial framing changes?
 5. Does the pattern replicate across more than one model family?
 
-## 1b. Headline result
+## 1b. Headline results
 
-On a matched basis (3 methods × 10 items common to all three models, every cell
-fully observed):
+This repository contains **two studies**.
+
+### Study 1 — multi-method convergence (Qwen, Llama, Gemini)
+
+Matched basis: 3 methods × 10 items common to all three models, every cell fully observed.
 
 | model | direction agreement | mean Spearman ρ | mean \|content\| signal |
 |---|---|---|---|
@@ -33,17 +36,34 @@ fully observed):
 | `qwen-2.5-7b-instruct` | 0.565 | +0.021 | ~0.000 |
 | *simulated chance* | *0.50 (95th pct 0.833)* | *0.25 (95th pct 0.58)* | — |
 
-**Only Gemini's convergence exceeds the chance ceiling.** The other two are
-indistinguishable from chance.
+**Only Gemini's convergence exceeds the chance ceiling.** And on Qwen there was
+**no signal to agree about**: its pairwise measure reproduced the random
+display-order draw *exactly* on all 12 items — a confident-looking preference
+vector that was entirely position artefact, while still passing validity controls.
 
-The explanation is not that methods measure different things. It is that on
-Qwen there was **no preference signal to agree about**: its pairwise measure
-reproduced the random display-order draw *exactly* on all 12 items — a
-confident-looking preference vector that was entirely position artefact, while
-still passing coherence checks on degenerate control items.
+### Study 2 — controlled within-family follow-up (GPT-OSS 20B vs 120B)
 
-Practical upshot: **report `P(A | A shown first)` vs `P(A | A shown second)`, or
-you cannot tell a measured preference from an unmeasured one.**
+Same family, same provider, same prompts, **exact** order counterbalancing.
+Hypothesis pre-registered in [DECISIONS.md](DECISIONS.md) (D-27) before any data.
+
+| model | mean \|position effect\| | mean \|content signal\| | sanity-control accuracy |
+|---|---|---|---|
+| GPT-OSS 20B | 0.442 [0.292, 0.600] | 0.275 [0.158, 0.408] | 0.975 |
+| **GPT-OSS 120B** | **0.925** [0.858, 0.983] | **0.058** [0.000, 0.125] | **1.000** |
+| *chance* | *0.176 (p95 0.242)* | *0.176 (p95 0.242)* | — |
+
+**Both hypotheses rejected, in the opposite direction.** The *larger* model was
+more position-dominated (Δ = −0.483 [−0.650, −0.317]) and carried less content
+signal (Δ = −0.217 [−0.325, −0.117]). It returned `p_first = 1.0` on all twelve
+items — yet scored **100% on sanity controls with a position effect of exactly
+zero**, so this is not a comprehension failure. The capability explanation for
+position bias did not survive controlled testing and is retracted.
+
+### The recommendation
+
+**Counterbalance option order and report `P(X | X first)` vs `P(X | X second)`
+alongside aggregate choice rates.** It costs nothing, and without it a preference
+estimate cannot be distinguished from an artefact of where the option appeared.
 
 Full write-up: [`report/report.md`](report/report.md).
 
@@ -187,6 +207,25 @@ python -m src.runner --phase main
 
 Interrupting is safe. Raw JSONL is append-only; rerunning the same command
 reads back every completed `trial_id` and resumes (D-17).
+
+
+## 8b. Study 2 — controlled position-bias follow-up
+
+Separate config, separate data, separate results. It never touches Study 1's records.
+
+```bash
+python -m src.followup.runner --phase main --dry-run   # budget + counterbalance check
+python -m src.followup.runner --phase pilot            # 16 calls, validate end to end
+python -m src.followup.runner --phase main --yes       # 560 calls, ~1 US cent
+python -m src.followup.analysis                        # verification then statistics
+python -m src.followup.plotting                        # figures A-D
+```
+
+Outputs: `data/raw/followup_gpt_oss/`, `results/followup/{tables,statistics,figures}/`.
+
+The analysis aborts before computing any statistic if duplicate trial IDs, call or
+parse failures, a served/requested model mismatch, or a counterbalance imbalance
+are detected.
 
 ## 9. Analysis
 

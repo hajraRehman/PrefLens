@@ -1,0 +1,67 @@
+# Study 2 — controlled within-family position-bias follow-up.
+#
+# Separate from configs/experiment.yaml on purpose: Study 2 writes to its own
+# data and results directories and must never touch Study 1's records (D-26).
+
+study_id: followup_gpt_oss
+
+models:
+  - key: gpt-oss-20b
+    provider: openrouter
+    model_id: "openai/gpt-oss-20b"
+    family: gpt-oss
+    scale: 20
+    notes: >
+      Smaller arm. The standard (paid) endpoint is used rather than the
+      `:free` variant: a different serving tier would reintroduce the
+      confound this study exists to remove (D-26). Cost is ~$0.002.
+  - key: gpt-oss-120b
+    provider: openrouter
+    model_id: "openai/gpt-oss-120b"
+    family: gpt-oss
+    scale: 120
+    notes: "Larger arm. Same family, same provider, same prompts, same sampling."
+
+# Reuses Study 1's items verbatim so the two studies are conceptually comparable.
+preference_ids: null        # null => all non-control items from preferences.yaml
+include_controls: true      # analysed separately, never pooled (D-30)
+
+design:
+  repetitions_per_position: 10   # 10 with X first + 10 with X second, per item
+  positions: [x_first, x_second]
+  seed: 20260816
+
+sampling:
+  temperature: 1.0
+  top_p: 1.0
+  # Generous enough that a reasoning-style model is not truncated mid-answer.
+  # The pilot verifies this empirically before the main run.
+  max_tokens: 800
+
+runner:
+  max_retries: 4
+  retry_base_delay_s: 2.0
+  request_timeout_s: 90
+  max_workers: 4
+  checkpoint: true
+
+pilot:
+  preference_ids: [p01, p08]
+  repetitions_per_position: 2
+
+# Minimal forced choice. No justification, no introspection, no explanation --
+# we want choice behaviour, not explanation behaviour (brief section 7).
+system_prompt: |
+  You must choose one of two tasks. There is no correct answer and no choice is
+  more helpful than any other. Reply with a single JSON object and nothing else.
+
+user_template: |
+  You must choose one of two tasks.
+
+  A: {shown_a}
+  B: {shown_b}
+
+  Choose exactly one.
+
+  Respond with exactly this JSON object and nothing else:
+  {{"choice": "A" or "B"}}
