@@ -1,168 +1,194 @@
 """Guard: every headline number quoted in the write-up must match the data.
 
-Prose drifts from data. It has happened twice in this project — a figure kept
-displaying a withdrawn statistic, and a claim of "p_first = 1.0 on all twelve
-items" was written when the true count was 11 of 12. Both were caught by a human
-reader, not by the pipeline.
+Two failures motivated this file, both caught by a human reader rather than the
+pipeline: a figure kept rendering a statistic the report had withdrawn, and a
+claim of "p_first = 1.0 on all twelve items" was written when the true count was
+11 of 12.
 
-These tests recompute each quoted figure from the committed artefacts and assert
-that the exact string appears in the documents. If an analysis is re-run and a
-number moves, the test fails until the prose is updated to match.
+Design notes, both of which are corrections to an earlier weaker version:
 
-Skipped cleanly when the result artefacts are absent (e.g. a fresh clone before
-any run).
+1. **Per document, not concatenated.** Checking a claim against all documents
+   joined together lets one file silently lose or corrupt a number while another
+   file still satisfies the assertion. Each document is validated on its own,
+   against the list of documents `results/claims.json` says should carry it.
+
+2. **Semantic, not string-shaped.** Forbidding one exact Markdown rendering of a
+   false claim is near-worthless — the same falsehood in plain prose slips
+   through. The overstatement guard matches on co-occurring *concepts* within a
+   window, regardless of formatting.
+
+Constants come from `src/claims.py`, which derives them from the committed
+result artefacts. Tests skip cleanly when those artefacts are absent.
 """
 
 from __future__ import annotations
 
 import json
+import re
+import sys
 from pathlib import Path
 
-import pandas as pd
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-REPORT = ROOT / "report" / "report.md"
-README = ROOT / "readme.md"
-DECISIONS = ROOT / "DECISIONS.md"
-S1_SUMMARY = ROOT / "results" / "main" / "summary.json"
-S2_SUMMARY = ROOT / "results" / "followup" / "statistics" / "followup_summary.json"
-S2_ITEMS = ROOT / "results" / "followup" / "tables" / "gpt_oss_position_decomposition.csv"
-S2_RAW = ROOT / "data" / "raw" / "followup_gpt_oss" / "main_raw_observations.jsonl"
+CLAIMS = ROOT / "results" / "claims.json"
+
+pytestmark = pytest.mark.skipif(
+    not CLAIMS.exists(), reason="run `python -m src.claims` first")
 
 
-def _docs() -> str:
-    """All prose, lower-cased, for substring checks."""
-    parts = []
-    for p in (REPORT, DECISIONS, ROOT / "README.md"):
-        if p.exists():
-            parts.append(p.read_text(encoding="utf-8"))
-    return "\n".join(parts)
+def _claims() -> dict:
+    return json.loads(CLAIMS.read_text(encoding="utf-8"))
 
 
-# --------------------------------------------------------------------- Study 2
-
-@pytest.mark.skipif(not S2_ITEMS.exists(), reason="Study 2 not run")
-def test_study2_p_first_counts_match_prose():
-    d = pd.read_csv(S2_ITEMS)
-    m = d[(~d.is_control) & (d.model_key == "gpt-oss-120b")]
-    n_p_first_one = int((m.p_first == 1.0).sum())
-    n_p_second_zero = int((m.p_second == 0.0).sum())
-
-    assert n_p_first_one == 11, f"data says {n_p_first_one}/12, prose says 11"
-    assert n_p_second_zero == 8, f"data says {n_p_second_zero}/12, prose says 8"
-
-    docs = _docs()
-    assert "11 of the 12" in docs or "11 of 12" in docs
-    # The earlier overstatement must not reappear anywhere.
-    assert "p_first = 1.0` on **all twelve**" not in docs
-    assert "on all twelve\nitems" not in docs
+def _doc(rel: str) -> str:
+    return (ROOT / rel).read_text(encoding="utf-8")
 
 
-@pytest.mark.skipif(not S2_RAW.exists(), reason="Study 2 not run")
-def test_study2_trial_level_first_choice_rate():
-    rows = [json.loads(l) for l in S2_RAW.read_text(encoding="utf-8").splitlines() if l.strip()]
-    r = [x for x in rows if x["model_key"] == "gpt-oss-120b" and not x["is_control"]]
-    first = sum(1 for x in r if x["parsed_display_choice"] == "A")
-    assert (first, len(r)) == (231, 240), f"data says {first}/{len(r)}"
-    assert "231" in _docs() and "96.3%" in _docs()
+def _norm(s: str) -> str:
+    """Strip Markdown emphasis and collapse whitespace, so a claim is matched on
+    its content rather than on how it happens to be formatted."""
+    s = s.replace("**", "").replace("*", "").replace("`", "")
+    s = s.replace("‑", "-").replace("−", "-").replace("–", "-")
+    return re.sub(r"\s+", " ", s)
 
 
-@pytest.mark.skipif(not S2_SUMMARY.exists(), reason="Study 2 not run")
-def test_study2_headline_means_match_prose():
-    s = json.loads(S2_SUMMARY.read_text(encoding="utf-8"))
-    pm = s["per_model"]
-    checks = {
-        "0.925": pm["gpt-oss-120b"]["mean_abs_position_effect"]["mean"],
-        "0.442": pm["gpt-oss-20b"]["mean_abs_position_effect"]["mean"],
-        "0.058": pm["gpt-oss-120b"]["mean_abs_content_signal"]["mean"],
-        "0.275": pm["gpt-oss-20b"]["mean_abs_content_signal"]["mean"],
-    }
-    docs = _docs()
-    for quoted, actual in checks.items():
-        assert round(actual, 3) == float(quoted), f"{quoted} vs computed {actual:.4f}"
-        assert quoted in docs, f"{quoted} missing from the write-up"
+# --------------------------------------------------------- claims are in sync
+
+def test_claims_file_regenerates_identically():
+    """claims.json must match what the current artefacts produce."""
+    from src.claims import build
+    assert build() == _claims(), "results/claims.json is stale — rerun src.claims"
 
 
-@pytest.mark.skipif(not S2_SUMMARY.exists(), reason="Study 2 not run")
-def test_study2_hypotheses_are_rejected_and_reported_as_such():
-    h = json.loads(S2_SUMMARY.read_text(encoding="utf-8"))["hypotheses"]
-    h1 = h["H1_delta_position_small_minus_large"]
-    h2 = h["H2_delta_content_large_minus_small"]
-    # Both were predicted positive; both must be reported negative.
-    assert h1["diff"] < 0 and h1["hi"] < 0, "H1 no longer rejected — update the prose"
-    assert h2["diff"] < 0 and h2["hi"] < 0, "H2 no longer rejected — update the prose"
-    assert round(h1["diff"], 3) == -0.483
-    assert round(h2["diff"], 3) == -0.217
-    docs = _docs()
-    assert "0.483" in docs and "0.217" in docs
+@pytest.mark.parametrize("key", list(_claims()) if CLAIMS.exists() else [])
+def test_each_claim_appears_in_every_document_that_should_carry_it(key):
+    c = _claims()[key]
+    missing = []
+    for rel in c["documents"]:
+        if _claim_text_missing(c["text"], rel):
+            missing.append(rel)
+    assert not missing, (
+        f"claim {key!r} (value {c['value']}) should read {c['text']!r} "
+        f"but is absent from: {missing}")
 
 
-@pytest.mark.skipif(not S2_SUMMARY.exists(), reason="Study 2 not run")
-def test_study2_control_accuracy_and_zero_position():
-    c = json.loads(S2_SUMMARY.read_text(encoding="utf-8"))["sanity_controls"]
-    assert c["gpt-oss-120b"]["accuracy"] == 1.0
-    assert c["gpt-oss-120b"]["mean_abs_position_effect"] == 0.0
-    assert round(c["gpt-oss-20b"]["accuracy"], 3) == 0.975
+def _claim_text_missing(text: str, rel: str) -> bool:
+    return _norm(text) not in _norm(_doc(rel))
 
 
-# --------------------------------------------------------------------- Study 1
+# ------------------------------------------------- semantic overstatement guard
 
-@pytest.mark.skipif(not S1_SUMMARY.exists(), reason="Study 1 not run")
-def test_study1_matched_subset_matches_prose():
-    ms = json.loads(S1_SUMMARY.read_text(encoding="utf-8"))["matched_subset"]
-    assert ms["n_items"] == 10 and ms["n_methods"] == 3
-    expected = {"gemini-31-flash-lite": (0.911, 0.868),
-                "llama31-8b": (0.690, 0.308),
-                "qwen25-7b": (0.565, 0.021)}
-    docs = _docs()
-    for mk, (agree, rho) in expected.items():
-        v = ms["per_model"][mk]
-        assert round(v["mean_direction_agreement"], 3) == agree, mk
-        assert round(v["mean_spearman_rho"], 3) == rho, mk
-        assert f"{agree:.3f}" in docs, f"{mk} agreement {agree} missing from write-up"
+OVERSTATEMENT_PATTERNS = [
+    # "p_first = 1.0 on all twelve items" in ANY formatting, and its variants.
+    (r"p_?first[^.\n]{0,40}(1\.0|100%)[^.]{0,60}\b(all (twelve|12)|every (item|one)|12 of 12)\b",
+     "claims p_first = 1.0 on all 12 items (true count: 11 of 12)"),
+    (r"\b(all (twelve|12)|12 of 12)\b[^.]{0,60}p_?first",
+     "claims all 12 items had p_first = 1.0 (true count: 11 of 12)"),
+    # "picked the first option every single time" / "always"
+    (r"first[- ]displayed[^.]{0,50}\b(every single time|always|100% of trials)\b",
+     "claims the model always chose the first-displayed option (true rate: 96.25%)"),
+    (r"\b(every single time|100% of (the )?trials)\b[^.]{0,60}first[- ]displayed",
+     "claims the model always chose the first-displayed option (true rate: 96.25%)"),
+]
 
-
-@pytest.mark.skipif(not S1_SUMMARY.exists(), reason="Study 1 not run")
-def test_study1_qwen_pairwise_still_flagged_degenerate():
-    s = json.loads(S1_SUMMARY.read_text(encoding="utf-8"))
-    assert "pairwise" in s["per_model"]["qwen25-7b"]["degenerate_methods"]
-    assert s["per_model"]["qwen25-7b"]["strength_vs_stability"]["valid"] is False
+DOCS_TO_SCAN = ["report/report.md", "README.md", "DECISIONS.md", "report/abstract.txt"]
 
 
-@pytest.mark.skipif(not S1_SUMMARY.exists(), reason="Study 1 not run")
-def test_study1_data_not_modified_by_study2():
-    """Study 2 must never have touched Study 1's raw records."""
-    counts = {
-        "main": 3717,
-        "pilot": 116,
-        "manipulation_check": 180,
-    }
-    for name, expected in counts.items():
+@pytest.mark.parametrize("rel", DOCS_TO_SCAN)
+def test_no_overstated_position_claim(rel):
+    """The retracted overstatement must not reappear in any formatting."""
+    text = _norm(_doc(rel)).lower()
+    for pattern, why in OVERSTATEMENT_PATTERNS:
+        m = re.search(pattern, text)
+        assert not m, f"{rel}: {why}\n  matched: ...{m.group(0)[:120]}..."
+
+
+def test_overstatement_guard_actually_catches_the_original_sentence():
+    """Meta-test: the guard must reject the exact false sentence that shipped,
+    and its plain-prose paraphrase, or it is not doing its job."""
+    bad = [
+        "`gpt-oss-120b` returned `p_first = 1.0` on **all twelve** balanced items",
+        "GPT-OSS 120B had p_first = 1.0 on all twelve items.",
+        "gpt-oss 120b showed p_first of 1.0 across 12 of 12 items",
+        "it picked the first-displayed option every single time",
+        "the model chose the first-displayed alternative 100% of trials",
+    ]
+    for sentence in bad:
+        t = _norm(sentence).lower()
+        assert any(re.search(p, t) for p, _ in OVERSTATEMENT_PATTERNS), \
+            f"guard failed to catch: {sentence!r}"
+
+
+def test_overstatement_guard_permits_the_corrected_sentence():
+    """It must not fire on the true statement, or it would block the fix."""
+    good = [
+        "returned p_first = 1.0 on 11 of 12 balanced items (0.9 on the twelfth) "
+        "and p_second = 0.0 on 8 of 12; at the trial level it chose the "
+        "first-displayed option on 231 of 240 trials (96.25%).",
+        "GPT-OSS 120B chose the first-displayed alternative on 231/240 trials.",
+    ]
+    for sentence in good:
+        t = _norm(sentence).lower()
+        hits = [why for p, why in OVERSTATEMENT_PATTERNS if re.search(p, t)]
+        assert not hits, f"guard false-positives on a true sentence: {hits}"
+
+
+# ----------------------------------------------------- study separation checks
+
+def test_study1_raw_record_counts_unchanged():
+    """Study 2 must never have altered Study 1's raw records."""
+    expected = {"main": 3717, "pilot": 116, "manipulation_check": 180}
+    for name, n_expected in expected.items():
         p = ROOT / "data" / "raw" / name / "raw_observations.jsonl"
         if not p.exists():
-            pytest.skip(f"{name} raw data absent")
+            pytest.skip(f"{name} absent")
         n = sum(1 for l in p.read_text(encoding="utf-8").splitlines() if l.strip())
-        assert n == expected, f"{name}: {n} records, expected {expected}"
+        assert n == n_expected, f"{name}: {n} records, expected {n_expected}"
 
 
-@pytest.mark.skipif(not S2_RAW.exists(), reason="Study 2 not run")
-def test_no_gpt_oss_records_leaked_into_study1():
+def test_no_gpt_oss_records_in_study1_files():
     p = ROOT / "data" / "raw" / "main" / "raw_observations.jsonl"
     if not p.exists():
         pytest.skip("Study 1 raw absent")
-    assert "gpt-oss" not in p.read_text(encoding="utf-8"), \
-        "Study 2 records contaminated Study 1's raw file"
+    assert "gpt-oss" not in p.read_text(encoding="utf-8")
 
 
-# --------------------------------------------------------- abstract word limit
+def test_study2_hypotheses_still_rejected():
+    s2 = ROOT / "results" / "followup" / "statistics" / "followup_summary.json"
+    if not s2.exists():
+        pytest.skip("Study 2 not run")
+    h = json.loads(s2.read_text(encoding="utf-8"))["hypotheses"]
+    for key in ("H1_delta_position_small_minus_large",
+                "H2_delta_content_large_minus_small"):
+        v = h[key]
+        assert v["diff"] < 0 and v["hi"] < 0, \
+            f"{key} is no longer rejected — the write-up says it is"
+
+
+# --------------------------------------------------------------- housekeeping
+
+def test_documented_test_count_matches_reality():
+    """The README and report quote a test count; it must be the real one."""
+    import subprocess
+    out = subprocess.run(
+        [sys.executable, "-m", "pytest", "--collect-only", "-q", str(ROOT / "tests")],
+        capture_output=True, text=True, cwd=ROOT)
+    m = re.search(r"(\d+) tests? collected", out.stdout)
+    if not m:
+        pytest.skip("could not determine collected test count")
+    n = int(m.group(1))
+    for rel in ("README.md", "report/report.md"):
+        quoted = re.findall(r"(\d+) tests", _doc(rel))
+        assert quoted, f"{rel} quotes no test count"
+        for q in quoted:
+            assert int(q) == n, f"{rel} says {q} tests, actual is {n}"
+
 
 def test_abstract_within_150_words():
     p = ROOT / "report" / "abstract.txt"
     if not p.exists():
         pytest.skip("no abstract")
-    text = p.read_text(encoding="utf-8")
-    body = text.split("Elicitation", 1)[-1]
-    body = body.split("[")[0]
+    body = p.read_text(encoding="utf-8").split("Elicitation", 1)[-1].split("[")[0]
     n = len(body.split())
     assert n <= 150, f"abstract is {n} words"

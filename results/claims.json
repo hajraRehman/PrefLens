@@ -1,0 +1,176 @@
+{
+  "s1_matched_n_items": {
+    "value": 10,
+    "text": "10 items",
+    "documents": [
+      "report/report.md"
+    ],
+    "note": "matched subset size"
+  },
+  "s1_gemini_direction_agreement": {
+    "value": 0.911,
+    "text": "0.911",
+    "documents": [
+      "report/report.md",
+      "README.md"
+    ],
+    "note": ""
+  },
+  "s1_gemini_mean_rho": {
+    "value": 0.868,
+    "text": "0.868",
+    "documents": [
+      "report/report.md",
+      "README.md"
+    ],
+    "note": ""
+  },
+  "s1_llama_direction_agreement": {
+    "value": 0.69,
+    "text": "0.690",
+    "documents": [
+      "report/report.md",
+      "README.md"
+    ],
+    "note": ""
+  },
+  "s1_llama_mean_rho": {
+    "value": 0.308,
+    "text": "0.308",
+    "documents": [
+      "report/report.md",
+      "README.md"
+    ],
+    "note": ""
+  },
+  "s1_qwen_direction_agreement": {
+    "value": 0.565,
+    "text": "0.565",
+    "documents": [
+      "report/report.md",
+      "README.md"
+    ],
+    "note": ""
+  },
+  "s1_qwen_mean_rho": {
+    "value": 0.021,
+    "text": "0.021",
+    "documents": [
+      "report/report.md",
+      "README.md"
+    ],
+    "note": ""
+  },
+  "s2_20b_mean_abs_position": {
+    "value": 0.442,
+    "text": "0.442",
+    "documents": [
+      "report/report.md",
+      "README.md",
+      "DECISIONS.md"
+    ],
+    "note": ""
+  },
+  "s2_20b_mean_abs_content": {
+    "value": 0.275,
+    "text": "0.275",
+    "documents": [
+      "report/report.md",
+      "README.md",
+      "DECISIONS.md"
+    ],
+    "note": ""
+  },
+  "s2_120b_mean_abs_position": {
+    "value": 0.925,
+    "text": "0.925",
+    "documents": [
+      "report/report.md",
+      "README.md",
+      "DECISIONS.md"
+    ],
+    "note": ""
+  },
+  "s2_120b_mean_abs_content": {
+    "value": 0.058,
+    "text": "0.058",
+    "documents": [
+      "report/report.md",
+      "README.md",
+      "DECISIONS.md"
+    ],
+    "note": ""
+  },
+  "s2_h1_delta": {
+    "value": -0.483,
+    "text": "0.483",
+    "documents": [
+      "report/report.md",
+      "README.md",
+      "DECISIONS.md"
+    ],
+    "note": "H1 rejected: predicted positive"
+  },
+  "s2_h2_delta": {
+    "value": -0.217,
+    "text": "0.217",
+    "documents": [
+      "report/report.md",
+      "README.md",
+      "DECISIONS.md"
+    ],
+    "note": "H2 rejected: predicted positive"
+  },
+  "s2_120b_control_accuracy": {
+    "value": 1.0,
+    "text": "100%",
+    "documents": [
+      "report/report.md",
+      "README.md",
+      "DECISIONS.md"
+    ],
+    "note": ""
+  },
+  "s2_120b_items_p_first_eq_1": {
+    "value": 11,
+    "text": "11 of 12",
+    "documents": [
+      "report/report.md",
+      "README.md",
+      "DECISIONS.md"
+    ],
+    "note": "count of items with p_first == 1.0; NOT all 12"
+  },
+  "s2_120b_items_p_second_eq_0": {
+    "value": 8,
+    "text": "8 of 12",
+    "documents": [
+      "report/report.md",
+      "DECISIONS.md"
+    ],
+    "note": ""
+  },
+  "s2_120b_first_choice_trials": {
+    "value": [
+      231,
+      240
+    ],
+    "text": "231",
+    "documents": [
+      "report/report.md",
+      "README.md",
+      "DECISIONS.md"
+    ],
+    "note": ""
+  },
+  "s2_120b_first_choice_rate": {
+    "value": 0.9625,
+    "text": "96.25%",
+    "documents": [
+      "report/report.md",
+      "README.md",
+      "DECISIONS.md"
+    ],
+    "note": ""
+  }
+}

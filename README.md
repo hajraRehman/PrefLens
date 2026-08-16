@@ -44,7 +44,8 @@ vector that was entirely position artefact, while still passing validity control
 ### Study 2 — controlled within-family follow-up (GPT-OSS 20B vs 120B)
 
 Same family, same provider, same prompts, **exact** order counterbalancing.
-Hypothesis pre-registered in [DECISIONS.md](DECISIONS.md) (D-27) before any data.
+Hypotheses pre-specified in [DECISIONS.md](DECISIONS.md) (D-27) and recorded
+before any Study 2 data was collected.
 
 | model | mean \|position effect\| | mean \|content signal\| | sanity-control accuracy |
 |---|---|---|---|
@@ -55,7 +56,7 @@ Hypothesis pre-registered in [DECISIONS.md](DECISIONS.md) (D-27) before any data
 **Both hypotheses rejected, in the opposite direction.** The *larger* model was
 more position-dominated (Δ = −0.483 [−0.650, −0.317]) and carried less content
 signal (Δ = −0.217 [−0.325, −0.117]). It returned `p_first = 1.0` on 11 of 12
-items and chose the first-displayed option on 231/240 trials (96.3%) — yet scored
+items and chose the first-displayed option on 231/240 trials (96.25%) — yet scored
 **100% on sanity controls with a position effect of exactly zero**, so this is not
 a comprehension failure. The capability explanation for position bias did not
 survive controlled testing and is retracted.
@@ -258,7 +259,7 @@ Writes 300 dpi PNGs to `results/figures/`:
 python -m pytest tests -q
 ```
 
-70 tests covering defensive parsing, every method's normalisation, the
+133 tests covering defensive parsing, every method's normalisation, the
 display↔semantic mapping, metric ranges and edge cases, CMCS bounds as a
 property test, position-bias detection, checkpoint semantics, budget accounting,
 and the item-set constraints (option length balance, banned evaluative wording).
@@ -283,7 +284,7 @@ src/
     metrics.py           convergence metrics, bootstrap, baselines, position bias
     analysis.py          raw -> scores -> metrics -> tables
     plotting.py          figures 1-4
-tests/                   70 tests
+tests/                   133 tests
 data/raw/<exp>/          raw_observations.jsonl + manifest.json (append-only)
 data/processed/<exp>/    observations.csv, method_scores.csv
 results/                 pilot/, main/, figures/, tables/

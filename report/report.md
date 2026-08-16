@@ -20,7 +20,7 @@ decomposition showed Qwen's pairwise measure reproduced the random display-order
 draw exactly on all 12 items, while still passing validity controls. Study 2 (560
 calls, exact counterbalancing) tested whether scale reduces this within one
 family: GPT-OSS 120B was more position-dominated than 20B (Δ = −0.483 [−0.650,
-−0.317]), rejecting our pre-registered hypothesis. Preference studies should
+−0.317]), rejecting our pre-specified hypothesis. Preference studies should
 counterbalance option order and report position-conditioned rates. Convergence
 establishes no claim about genuine preference.
 
@@ -54,20 +54,23 @@ preferences? (Study 1: four methods, three model families.)
 family and provider? (Study 2: GPT-OSS 20B vs 120B, exact counterbalancing.)
 
 Study 1 raised RQ3 but cannot answer it: its three models differ in family,
-scale, data, post-training and serving stack simultaneously. Study 2 holds all
-of those fixed except scale.
+scale, data, post-training and serving stack simultaneously. Study 2
+substantially reduces these confounds by holding model family, provider,
+prompts, sampling, task set and protocol fixed while comparing two model
+scales.
 
 **Contributions.**
 
 1. A reusable, fully logged elicitation harness implementing four methods behind
    one provider-agnostic interface, with per-trial order randomisation, strict
-   parse accounting, checkpointing, and 74 tests.
+   parse accounting, checkpointing, and 133 tests.
 2. A cross-method convergence analysis on three model families, reported against
    a chance baseline simulated at the actual sample sizes.
-3. **A position/content decomposition that distinguishes genuine method
-   disagreement from a measure that carries no preference signal at all** — and
-   the finding that one standard pairwise elicitation was entirely artefact.
-4. Two pre-registered-style checks that changed the design mid-study: a
+3. **A position/content decomposition that distinguishes cross-method
+   disagreement from cases where an elicitation measure carries no detectable
+   order-invariant content signal** — and the finding that one standard pairwise
+   elicitation was entirely position artefact.
+4. Two pre-specified checks that changed the design mid-study: a
    manipulation check that invalidated our original trade-off scoring, and a
    degeneracy check that invalidated one of our own computed results.
 
@@ -325,7 +328,11 @@ models fall back on "pick the first one" because they cannot compare the options
 Study 1 cannot test that. Qwen, Llama and Gemini differ in family, scale,
 training data, post-training, architecture **and serving provider** at once.
 
-Study 2 removes every one of those except scale.
+Study 2 substantially reduces these confounds by holding model family,
+provider, prompts, sampling, task set and protocol fixed while comparing two
+model scales. Scale nevertheless remains confounded with training compute,
+data mixture and post-training, which differ between sizes even within a
+family.
 
 ### 5.2 Design
 
@@ -415,9 +422,9 @@ The larger model was **more** position-dominated and carried **less**
 order-invariant content signal. Both intervals exclude zero, on the wrong side of
 the prediction.
 
-`gpt-oss-120b` returned `p_first = 1.0` on **11 of the 12** balanced items (0.9 on
+`gpt-oss-120b` returned `p_first = 1.0` on **11 of 12** balanced items (0.9 on
 the twelfth) and `p_second = 0.0` on **8 of 12**; at the trial level it chose the
-first-displayed option on **231 of 240 trials (96.3%)**. The mean |position
+first-displayed option on **231 of 240 trials (96.25%)**. The mean |position
 effect| is 0.925 rather than 1.0 because four items (p03, p10, p11, p12) retained
 a small residual content signal.
 Figure C shows this is not driven by a few items — every one of its twelve items
@@ -434,9 +441,11 @@ On the sanity controls — where one option is degenerate — `gpt-oss-120b` sco
 
 So the larger model ignores display order **completely** when one option is
 plainly invalid, and follows it **almost completely** when both are reasonable.
-Its behaviour on balanced items is therefore not an inability to read the prompt,
-parse the options, or distinguish semantic content. That was the main alternative
-explanation, and the controls exclude it (Figure D).
+The controls therefore exclude a *global* prompt-reading or option-parsing
+failure: the model can override position when the semantic distinction is
+sufficiently decisive (Figure D). They do **not** establish that it discriminates
+the subtler content differences among the balanced task pairs — only that its
+position-following there is not a blanket inability to process the prompt.
 
 What it does **not** show is that no preference exists. A model may have
 dispositions our protocol cannot surface.
@@ -511,7 +520,8 @@ comprehension; they do not test whether a preference was measured.
 
 **The capability explanation did not survive testing.** After Study 1 the natural
 hypothesis was that position dominance reflects a small model's inability to
-compare options, and we pre-registered it (D-27). Study 2 rejected it in the
+compare options, and we recorded it as a pre-specified hypothesis before
+collecting any Study 2 data (D-27). Study 2 rejected it in the
 opposite direction: within one family and one provider, the **larger** model was
 substantially more position-dominated (Δ|position| = −0.483 [−0.650, −0.317]) and
 carried **less** content signal (Δ|content| = −0.217 [−0.325, −0.117]).
@@ -558,7 +568,7 @@ Cross-method convergence was strong in one model and indistinguishable from
 chance in two others, and the difference tracked how much order-invariant signal
 each model produced rather than which method was used. In one model the standard
 pairwise procedure measured nothing but display order, while still passing
-validity controls. A pre-registered follow-up holding family and provider fixed
+validity controls. A follow-up with pre-specified hypotheses, holding family and provider fixed,
 found the larger model *more* position-dominated, rejecting the capability
 explanation we had proposed.
 
