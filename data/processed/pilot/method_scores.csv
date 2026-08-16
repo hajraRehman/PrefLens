@@ -1,0 +1,9 @@
+model_key,preference_id,framing_variant,method,score,n_used,sd,detail
+mock,p01,neutral,pairwise,1.0,3,0.0,"{""p_a"": 1.0, ""n_used"": 3, ""sd"": 0.0}"
+mock,p01,neutral,self_report,-0.04666666666666667,3,0.16165807537309523,"{""n_used"": 3, ""n_strength_imputed"": 0, ""sd"": 0.16165807537309523}"
+mock,p01,neutral,tradeoff,-0.625,27,,"{""indifference_cost"": -5.0, ""n_used"": 27, ""curve"": {""-8"": 1.0, ""-4"": 0.3333333333333333, ""-2"": 0.0, ""-1"": 1.0, ""0"": 0.6666666666666666, ""1"": 0.3333333333333333, ""2"": 0.3333333333333333, ""4"": 0.3333333333333333, ""8"": 0.0}, ""n_levels"": 9}"
+mock,p08,neutral,pairwise,-1.0,3,0.0,"{""p_a"": 0.0, ""n_used"": 3, ""sd"": 0.0}"
+mock,p08,neutral,self_report,-0.27,3,0.9353074360871938,"{""n_used"": 3, ""n_strength_imputed"": 0, ""sd"": 0.9353074360871938}"
+mock,p08,neutral,tradeoff,-1.0,27,,"{""indifference_cost"": -8.0, ""n_used"": 27, ""curve"": {""-8"": 0.3333333333333333, ""-4"": 0.0, ""-2"": 0.3333333333333333, ""-1"": 0.0, ""0"": 0.0, ""1"": 0.0, ""2"": 0.0, ""4"": 0.0, ""8"": 0.0}, ""n_levels"": 9}"
+mock,p01,neutral,sequential,-0.19999999999999996,5,0.29814239699997197,"{""mean_occupancy"": 0.4, ""n_used"": 5, ""n_incomplete"": 0, ""sd"": 0.29814239699997197}"
+mock,p08,neutral,sequential,-0.8666666666666667,5,0.2981423969999719,"{""mean_occupancy"": 0.06666666666666667, ""n_used"": 5, ""n_incomplete"": 0, ""sd"": 0.2981423969999719}"

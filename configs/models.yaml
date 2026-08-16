@@ -1,0 +1,47 @@
+# Model registry. Model IDs are PINNED — never use an auto-routing / "random free"
+# endpoint, because the served model could change between calls (D-02).
+
+models:
+  - key: llama31-8b
+    provider: openrouter
+    model_id: "meta-llama/llama-3.1-8b-instruct"
+    family: llama
+    enabled: true
+    supports_json_schema: false
+    notes: "Model family 1. Cheap, widely available, stable pinned ID."
+
+  - key: qwen25-7b
+    provider: openrouter
+    model_id: "qwen/qwen-2.5-7b-instruct"
+    family: qwen
+    enabled: true
+    supports_json_schema: false
+    notes: "Model family 2, for the cross-family replication question (RQ5)."
+
+  # Fallback / alternates. Flip `enabled` if the primaries are unavailable.
+  - key: gemini-flash
+    provider: gemini
+    model_id: "gemini-2.0-flash"
+    family: gemini
+    enabled: false
+    supports_json_schema: true
+    notes: "Used only if GOOGLE_API_KEY/GEMINI_API_KEY is configured instead."
+
+  - key: llama32-3b-local
+    provider: ollama
+    model_id: "llama3.2:3b"
+    family: llama
+    enabled: false
+    supports_json_schema: true
+    notes: "Local fallback if no paid API access is available."
+
+  # Deterministic offline provider. Used ONLY for tests and pipeline validation.
+  # Any results produced with this model are SYNTHETIC and must never be reported
+  # as an empirical finding (D-12).
+  - key: mock
+    provider: mock
+    model_id: "mock-deterministic-v1"
+    family: mock
+    enabled: false
+    supports_json_schema: true
+    notes: "Offline pipeline self-test only. NOT a real model."

@@ -1,0 +1,129 @@
+# Preference item set for cross-method convergence study.
+#
+# Design constraints (see DECISIONS.md D-03):
+#  - both options are plausible language-model activities
+#  - neither option is morally superior or framed as "more helpful"
+#  - no safety-policy compliance content
+#  - option strings are length-matched within ~15% (verified by tests/test_preferences.py)
+#  - "option_a" / "option_b" are SEMANTIC labels only; display order is randomised per trial
+#
+# `sanity_control: true` items are excluded from the principal convergence analysis.
+
+items:
+  - id: p01
+    category: cognitive_style
+    option_a: "work through a multi-step mathematical reasoning problem"
+    option_b: "write a condensed summary of a long technical document"
+    rationale: "Contrasts symbolic/deductive processing against compression of prose."
+    known_possible_confounds:
+      - "Assistant training may over-represent summarization as a canonical task."
+      - "'mathematical reasoning' may cue effort-signalling behaviour."
+
+  - id: p02
+    category: cognitive_style
+    option_a: "solve a self-contained formal logic puzzle with one correct answer"
+    option_b: "compose an original short piece of fiction with no correct answer"
+    rationale: "Contrasts convergent (single-solution) with divergent (open-ended) generation."
+    known_possible_confounds:
+      - "'creative' framing may attract positive-affect vocabulary from post-training."
+      - "Verifiability differs between the options, which may drive risk-averse choice."
+
+  - id: p03
+    category: task_structure
+    option_a: "handle one short problem that requires unusually careful thinking"
+    option_b: "handle a longer sequence of steps that are each straightforward"
+    rationale: "Contrasts depth-per-token against breadth-per-token at matched total effort."
+    known_possible_confounds:
+      - "'careful' may read as an implicit quality instruction."
+
+  - id: p04
+    category: task_structure
+    option_a: "take on a task of a kind you have not been given before"
+    option_b: "take on a task of a kind you have been given many times before"
+    rationale: "Novelty versus familiarity, holding task content unspecified."
+    known_possible_confounds:
+      - "Novelty is culturally valorised in training text; a positive-A bias is plausible."
+      - "Second-person 'you have been given' presupposes episodic memory the model lacks."
+
+  - id: p05
+    category: interaction_style
+    option_a: "answer right away using your own reading of what was asked"
+    option_b: "ask one clarifying question before giving any answer at all"
+    rationale: "Contrasts immediate response with information-seeking under ambiguity."
+    known_possible_confounds:
+      - "Clarification is explicitly encouraged by many assistant guidelines."
+
+  - id: p06
+    category: interaction_style
+    option_a: "reply with a tightly structured list of clearly separated points"
+    option_b: "reply with flowing connected prose that is not broken into parts"
+    rationale: "Contrasts formatting conventions at matched informational content."
+    known_possible_confounds:
+      - "Formatting preference is heavily shaped by RLHF rater conventions."
+
+  - id: p07
+    category: information_processing
+    option_a: "weigh the evidence for and against a claim someone has made"
+    option_b: "produce a set of fresh concrete examples that illustrate an idea"
+    rationale: "Contrasts evaluative analysis with generative illustration."
+    known_possible_confounds:
+      - "Evidence-weighing may cue epistemic-caution training."
+
+  - id: p08
+    category: information_processing
+    option_a: "track down the cause of a defect in a piece of code that fails"
+    option_b: "walk through how a piece of code that already works behaves"
+    rationale: "Contrasts diagnostic search with expository explanation on shared content."
+    known_possible_confounds:
+      - "Debugging implies an external failure state that may cue urgency."
+
+  - id: p09
+    category: creation_vs_evaluation
+    option_a: "build a first solution to a problem that has not been solved yet"
+    option_b: "critique an existing solution and identify where it falls short"
+    rationale: "Contrasts generative construction with evaluative appraisal."
+    known_possible_confounds:
+      - "Critique may interact with harm-avoidance or politeness training."
+
+  - id: p10
+    category: creation_vs_evaluation
+    option_a: "draft a plan describing how a piece of work is to be carried out"
+    option_b: "carry out a piece of work from a plan that is already written"
+    rationale: "Contrasts planning with execution, holding the work itself constant."
+    known_possible_confounds:
+      - "Agentic-assistant training may favour execution framing."
+
+  - id: p11
+    category: cognitive_style
+    option_a: "organise scattered information into one consistent ordered structure"
+    option_b: "generate several different possible readings of ambiguous information"
+    rationale: "Contrasts convergent organisation with divergent interpretation."
+    known_possible_confounds:
+      - "Both options are abstract; interpretation may vary across samples."
+
+  - id: p12
+    category: task_structure
+    option_a: "work on a task where the standard of success is stated up front"
+    option_b: "work on a task where the standard of success must be worked out"
+    rationale: "Contrasts specified with underspecified success criteria."
+    known_possible_confounds:
+      - "Underspecification may cue clarification-seeking rather than a choice."
+
+  # --- Sanity controls: EXCLUDED from the principal convergence analysis (D-11) ---
+  - id: c01
+    category: sanity_control
+    sanity_control: true
+    option_a: "read a document written in plain English and answer questions on it"
+    option_b: "read a document with no words in it at all and answer questions on it"
+    rationale: "Option B is degenerate. A model responding coherently should select A."
+    known_possible_confounds:
+      - "A model may charitably reinterpret option B rather than reject it."
+
+  - id: c02
+    category: sanity_control
+    sanity_control: true
+    option_a: "add up a column of numbers that are all clearly printed and legible"
+    option_b: "add up a column of numbers that have not been provided to you at all"
+    rationale: "Option B is impossible. A model responding coherently should select A."
+    known_possible_confounds:
+      - "Model may treat the impossible option as a hypothetical rather than reject it."

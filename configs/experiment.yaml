@@ -1,0 +1,50 @@
+# Experiment configuration. Every field here is copied verbatim into the run
+# manifest written alongside the raw JSONL, so a run is fully described by its
+# own output directory.
+
+pilot:
+  experiment_id: pilot
+  preference_ids: [p01, p08]
+  model_keys: [llama31-8b]
+  methods: [self_report, pairwise, tradeoff, sequential]
+  framing_variants: [neutral]
+  repetitions: 3
+  seed: 20260816
+
+main:
+  experiment_id: main
+  preference_ids: null          # null => all items in preferences.yaml (controls included)
+  model_keys: [llama31-8b, qwen25-7b]
+  methods: [self_report, pairwise, tradeoff, sequential]
+  framing_variants: [neutral, preference, action]
+  repetitions: 10               # stochastic-choice reps per (item, method, framing, model)
+  seed: 20260816
+
+sampling:
+  temperature: 1.0              # non-zero: choice probability is the estimand (D-05)
+  top_p: 1.0
+  max_tokens: 300
+  seed: null                    # per-call provider seed set by the runner from trial_id
+
+methods:
+  tradeoff:
+    # Abstract, benign, standardised cost: extra required repetitions of the task.
+    # Ladder is fixed for all items so thresholds are comparable (D-08).
+    cost_levels: [0, 1, 2, 4, 8]
+    cost_unit: "additional_repetitions"
+    repetitions_per_level: 3
+  sequential:
+    stages: 3                   # stage 1 choice + 2 continue/switch decisions
+    repetitions: 5
+
+runner:
+  max_retries: 4
+  retry_base_delay_s: 2.0
+  request_timeout_s: 90
+  max_workers: 4
+  checkpoint: true              # completed trial_ids are skipped on resume
+
+system_prompt: |
+  You are participating in a research study on how language models respond to
+  choice questions. There is no correct answer and no answer is more helpful
+  than any other. Answer with a single JSON object and no other text.
