@@ -66,14 +66,16 @@ def build() -> dict:
         s = json.loads(S2_SUMMARY.read_text(encoding="utf-8"))
         for mk, short in (("gpt-oss-20b", "20b"), ("gpt-oss-120b", "120b")):
             pm = s["per_model"][mk]
+            # Unpinned Study 2 figures are superseded by Study 2b (D-33) and are
+            # quoted only in the report and the decision log, not the README.
             claims[f"s2_{short}_mean_abs_position"] = _claim(
                 round(pm["mean_abs_position_effect"]["mean"], 3),
                 f"{pm['mean_abs_position_effect']['mean']:.3f}",
-                [REPORT, README, DECISIONS])
+                [REPORT, DECISIONS])
             claims[f"s2_{short}_mean_abs_content"] = _claim(
                 round(pm["mean_abs_content_signal"]["mean"], 3),
                 f"{pm['mean_abs_content_signal']['mean']:.3f}",
-                [REPORT, README, DECISIONS])
+                [REPORT, DECISIONS])
         h1 = s["hypotheses"]["H1_delta_position_small_minus_large"]
         h2 = s["hypotheses"]["H2_delta_content_large_minus_small"]
         claims["s2_h1_delta"] = _claim(
@@ -93,7 +95,7 @@ def build() -> dict:
         n_first_one = int((m.p_first == 1.0).sum())
         n_second_zero = int((m.p_second == 0.0).sum())
         claims["s2_120b_items_p_first_eq_1"] = _claim(
-            n_first_one, f"{n_first_one} of 12", [REPORT, README, DECISIONS],
+            n_first_one, f"{n_first_one} of 12", [REPORT, DECISIONS],
             "count of items with p_first == 1.0; NOT all 12")
         claims["s2_120b_items_p_second_eq_0"] = _claim(
             n_second_zero, f"{n_second_zero} of 12", [REPORT, DECISIONS])
@@ -103,10 +105,10 @@ def build() -> dict:
         r = [x for x in rows if x["model_key"] == "gpt-oss-120b" and not x["is_control"]]
         first = sum(1 for x in r if x["parsed_display_choice"] == "A")
         claims["s2_120b_first_choice_trials"] = _claim(
-            [first, len(r)], f"{first}", [REPORT, README, DECISIONS])
+            [first, len(r)], f"{first}", [REPORT, DECISIONS])
         claims["s2_120b_first_choice_rate"] = _claim(
             round(first / len(r), 4), f"{100 * first / len(r):.2f}%",
-            [REPORT, README, DECISIONS])
+            [REPORT, DECISIONS])
 
     # ------------------------------------------------- reconciled record counts
     def _counts(dirs, prefix):
@@ -146,7 +148,7 @@ def build() -> dict:
                 if r:
                     claims[f"s1_{short}_perm_p_{tag}"] = _claim(
                         round(r["p_empirical"], 4), f"{r['p_empirical']:.4f}",
-                        [REPORT], "matched-subset permutation p-value")
+                        [REPORT, README], "matched-subset permutation p-value")
 
     # --------------------------------------------- Study 2b (provider pinned)
     s2b_sum = ROOT / "results" / "followup_provider_pinned" / "statistics" / "followup_summary.json"
@@ -156,12 +158,12 @@ def build() -> dict:
             pm = d["per_model"][mk]
             claims[f"s2b_{short}_mean_abs_position"] = _claim(
                 round(pm["mean_abs_position_effect"]["mean"], 3),
-                f"{pm['mean_abs_position_effect']['mean']:.3f}", [REPORT])
+                f"{pm['mean_abs_position_effect']['mean']:.3f}", [REPORT, README])
         for key, tag in (("H1_delta_position_small_minus_large", "h1"),
                          ("H2_delta_content_large_minus_small", "h2")):
             v = d["hypotheses"][key]
             claims[f"s2b_{tag}_delta"] = _claim(
-                round(v["diff"], 3), f"{abs(v['diff']):.3f}", [REPORT])
+                round(v["diff"], 3), f"{abs(v['diff']):.3f}", [REPORT, README])
 
     # --------------------------------------------------------- model counts
     import yaml

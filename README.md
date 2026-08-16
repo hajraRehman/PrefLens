@@ -23,49 +23,68 @@ Secondary questions:
 
 ## 1b. Headline results
 
-This repository contains **two studies**.
+This repository contains **two studies**, and Study 2 has a provider-controlled
+replication (Study 2b) that supersedes it.
 
 ### Study 1 — multi-method convergence (Qwen, Llama, Gemini)
 
-Matched basis: 3 methods × 10 items common to all three models, every cell fully observed.
+Matched basis: 3 methods x 10 items common to all three models, every cell fully
+observed. Tested against a **matched permutation null** (10,000 permutations;
+each method column keeps its observed values, only item labels are permuted, so
+the only thing destroyed is cross-method alignment).
 
-| model | direction agreement | mean Spearman ρ | mean \|content\| signal |
-|---|---|---|---|
-| `gemini-3.1-flash-lite` | **0.911** | **+0.868** | 0.325 |
-| `llama-3.1-8b-instruct` | 0.690 | +0.308 | 0.185 |
-| `qwen-2.5-7b-instruct` | 0.565 | +0.021 | ~0.000 |
-| *simulated chance* | *0.50 (95th pct 0.833)* | *0.25 (95th pct 0.58)* | — |
+| model | direction agreement | p vs. null | mean Spearman rho | p vs. null |
+|---|---|---|---|---|
+| `gemini-3.1-flash-lite` | **0.911** | **0.0019** | **+0.868** | **0.0001** |
+| `llama-3.1-8b-instruct` | 0.690 | 0.1231 | +0.308 | 0.0693 |
+| `qwen-2.5-7b-instruct` | 0.565 | 0.2736 | +0.021 | 0.4325 |
 
-**Only Gemini's convergence exceeds the chance ceiling.** And on Qwen there was
-**no signal to agree about**: its pairwise measure reproduced the random
-display-order draw *exactly* on all 12 items — a confident-looking preference
-vector that was entirely position artefact, while still passing validity controls.
+**Gemini's convergence is established.** **Llama is ambiguous** — nominally
+significant on its own fuller 4-method basis (p = 0.014 / 0.033) but not on the
+matched basis, and not after Bonferroni correction across the six tests.
+**Qwen's is not detectable.**
 
-### Study 2 — controlled within-family follow-up (GPT-OSS 20B vs 120B)
+On Qwen the pairwise measure supplied **no detectable order-invariant signal**:
+its scores reproduced the display-order draw *exactly* on all 12 items — a
+confident-looking preference vector fully accounted for by display position,
+while still passing validity controls.
 
-Same family, same provider, same prompts, **exact** order counterbalancing.
-Hypotheses pre-specified in [DECISIONS.md](DECISIONS.md) (D-27) and recorded
-before any Study 2 data was collected.
+*(An earlier parametric "chance" baseline was found during final audit to be
+mis-specified in three ways and is withdrawn — see D-32. Its numbers appear
+nowhere in this repository's claims.)*
+
+### Study 2b — provider-pinned within-family follow-up (GPT-OSS 20B vs 120B)
+
+**This is the controlled result.** Same family, same prompts, same sampling,
+**exact** order counterbalancing, and both arms pinned to a single upstream
+inference provider (Groq) with the served provider recorded on every call.
+Hypotheses pre-specified in [DECISIONS.md](DECISIONS.md) (D-27) before any data.
 
 | model | mean \|position effect\| | mean \|content signal\| | sanity-control accuracy |
 |---|---|---|---|
-| GPT-OSS 20B | 0.442 [0.292, 0.600] | 0.275 [0.158, 0.408] | 0.975 |
-| **GPT-OSS 120B** | **0.925** [0.858, 0.983] | **0.058** [0.000, 0.125] | **1.000** |
+| GPT-OSS 20B | 0.608 [0.433, 0.758] | 0.208 [0.125, 0.300] | 1.000 |
+| **GPT-OSS 120B** | **0.942** [0.883, 0.992] | **0.058** [0.008, 0.117] | **1.000** |
 | *chance* | *0.176 (p95 0.242)* | *0.176 (p95 0.242)* | — |
 
 **Both hypotheses rejected, in the opposite direction.** The *larger* model was
-more position-dominated (Δ = −0.483 [−0.650, −0.317]) and carried less content
-signal (Δ = −0.217 [−0.325, −0.117]). It returned `p_first = 1.0` on 11 of 12
-items and chose the first-displayed option on 231/240 trials (96.25%) — yet scored
-**100% on sanity controls with a position effect of exactly zero**, so this is not
-a comprehension failure. The capability explanation for position bias did not
+more position-dominated (Δ = −0.333 [−0.492, −0.192]) and carried less
+order-invariant content signal (Δ = −0.150 [−0.217, −0.092]) — yet scored **100%
+on sanity controls with a position effect of exactly zero**, so this is not a
+comprehension failure. The capability explanation for position bias did not
 survive controlled testing and is retracted.
+
+**Study 2 (original, unpinned)** used OpenRouter without pinning the upstream
+inference provider, which was neither controlled nor recorded (D-33). It is
+retained for traceability and gave Δ = −0.483 / −0.217, but it should not be
+cited as a provider-controlled result.
 
 ### The recommendation
 
 **Counterbalance option order and report `P(X | X first)` vs `P(X | X second)`
-alongside aggregate choice rates.** It costs nothing, and without it a preference
-estimate cannot be distinguished from an artefact of where the option appeared.
+alongside aggregate choice rates.** It costs nothing, and without position-
+conditioned rates an aggregate estimate cannot rule out a display-order artefact.
+(These diagnostics detect order sensitivity; they do not validate that a genuine
+preference was measured.)
 
 Full write-up: [`report/report.md`](report/report.md).
 
@@ -74,9 +93,11 @@ Full write-up: [`report/report.md`](report/report.md).
 Work on apparent LLM preferences usually operationalises "preference" one way —
 most often repeated pairwise forced choice — and reports the resulting numbers.
 But the field has **no ground truth** against which a preference estimate can be
-checked. In measurement terms that leaves only one kind of evidence available:
-*convergent validity*, i.e. whether several distinct operationalisations of the
-same construct land in the same place. They are distinct but **not
+checked directly. *Convergent validity* — whether several distinct
+operationalisations of the same construct land in the same place — is **one
+useful source of evidence** about measurement consistency, alongside test-retest
+reliability, controlled interventions, and synthetic tasks with constructed
+ground truth. They are distinct but **not
 mechanistically independent** — all query the same model through text.
 
 If they do, preference estimates are at least method-robust. If they do not,

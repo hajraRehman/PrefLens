@@ -20,31 +20,31 @@ and available but not currently stated in the paper.
 | `s1_llama_mean_rho` | 0.308 | `results/main/summary.json` | `analysis.convergence_table` | `report/report.md`, `README.md` | verified |
 | `s1_qwen_direction_agreement` | 0.565 | `results/main/summary.json` | `analysis.convergence_table` | `report/report.md`, `README.md` | verified |
 | `s1_qwen_mean_rho` | 0.021 | `results/main/summary.json` | `analysis.convergence_table` | `report/report.md`, `README.md` | verified |
-| `s2_20b_mean_abs_position` | 0.442 | `results/followup/statistics/` | `followup.metrics.decompose` | `report/report.md`, `README.md`, `DECISIONS.md` | verified |
-| `s2_20b_mean_abs_content` | 0.275 | `results/followup/statistics/` | `followup.metrics.decompose` | `report/report.md`, `README.md`, `DECISIONS.md` | verified |
-| `s2_120b_mean_abs_position` | 0.925 | `results/followup/statistics/` | `followup.metrics.decompose` | `report/report.md`, `README.md`, `DECISIONS.md` | verified |
-| `s2_120b_mean_abs_content` | 0.058 | `results/followup/statistics/` | `followup.metrics.decompose` | `report/report.md`, `README.md`, `DECISIONS.md` | verified |
+| `s2_20b_mean_abs_position` | 0.442 | `results/followup/statistics/` | `followup.metrics.decompose` | `report/report.md`, `DECISIONS.md` | verified |
+| `s2_20b_mean_abs_content` | 0.275 | `results/followup/statistics/` | `followup.metrics.decompose` | `report/report.md`, `DECISIONS.md` | verified |
+| `s2_120b_mean_abs_position` | 0.925 | `results/followup/statistics/` | `followup.metrics.decompose` | `report/report.md`, `DECISIONS.md` | verified |
+| `s2_120b_mean_abs_content` | 0.058 | `results/followup/statistics/` | `followup.metrics.decompose` | `report/report.md`, `DECISIONS.md` | verified |
 | `s2_h1_delta` | -0.483 | `results/followup/statistics/` | `followup.metrics.bootstrap_difference` | `report/report.md`, `README.md`, `DECISIONS.md` | verified |
 | `s2_h2_delta` | -0.217 | `results/followup/statistics/` | `followup.metrics.bootstrap_difference` | `report/report.md`, `README.md`, `DECISIONS.md` | verified |
 | `s2_120b_control_accuracy` | 1.0 | `results/followup/statistics/` | `followup.analysis.control_accuracy` | `report/report.md`, `README.md`, `DECISIONS.md` | verified |
-| `s2_120b_items_p_first_eq_1` | 11 | `results/followup/tables/` | `followup.analysis.per_item_table` | `report/report.md`, `README.md`, `DECISIONS.md` | verified |
+| `s2_120b_items_p_first_eq_1` | 11 | `results/followup/tables/` | `followup.analysis.per_item_table` | `report/report.md`, `DECISIONS.md` | verified |
 | `s2_120b_items_p_second_eq_0` | 8 | `results/followup/tables/` | `followup.analysis.per_item_table` | `report/report.md`, `DECISIONS.md` | verified |
-| `s2_120b_first_choice_trials` | [231, 240] | `data/raw/followup_gpt_oss/` | `claims.build` | `report/report.md`, `README.md`, `DECISIONS.md` | verified |
-| `s2_120b_first_choice_rate` | 0.9625 | `data/raw/followup_gpt_oss/` | `claims.build` | `report/report.md`, `README.md`, `DECISIONS.md` | verified |
+| `s2_120b_first_choice_trials` | [231, 240] | `data/raw/followup_gpt_oss/` | `claims.build` | `report/report.md`, `DECISIONS.md` | verified |
+| `s2_120b_first_choice_rate` | 0.9625 | `data/raw/followup_gpt_oss/` | `claims.build` | `report/report.md`, `DECISIONS.md` | verified |
 | `s1_trial_records` | 4013 | `data/raw/{pilot,main,manipulation_check}/` | `claims._counts` | `report/report.md` | verified |
 | `s1_successful_responses` | 3928 | `data/raw/{pilot,main,manipulation_check}/` | `claims._counts` | `report/report.md` | verified |
 | `s1_api_attempts` | 4533 | `data/raw/{pilot,main,manipulation_check}/` | `claims._counts` | `report/report.md` | verified |
 | `s2b_trial_records` | 560 | `data/raw/followup_gpt_oss_provider_pinned/` | `claims._counts` | `report/report.md` | verified |
-| `s1_gemini_perm_p_dir` | 0.0019 | `results/main/summary.json` | `metrics.permutation_null` | `report/report.md` | verified |
-| `s1_gemini_perm_p_rho` | 0.0001 | `results/main/summary.json` | `metrics.permutation_null` | `report/report.md` | verified |
-| `s1_llama_perm_p_dir` | 0.1231 | `results/main/summary.json` | `metrics.permutation_null` | `report/report.md` | verified |
-| `s1_llama_perm_p_rho` | 0.0693 | `results/main/summary.json` | `metrics.permutation_null` | `report/report.md` | verified |
-| `s1_qwen_perm_p_dir` | 0.2736 | `results/main/summary.json` | `metrics.permutation_null` | `report/report.md` | verified |
-| `s1_qwen_perm_p_rho` | 0.4325 | `results/main/summary.json` | `metrics.permutation_null` | `report/report.md` | verified |
-| `s2b_20b_mean_abs_position` | 0.608 | `results/followup_provider_pinned/` | `followup.metrics.decompose` | `report/report.md` | verified |
-| `s2b_120b_mean_abs_position` | 0.942 | `results/followup_provider_pinned/` | `followup.metrics.decompose` | `report/report.md` | verified |
-| `s2b_h1_delta` | -0.333 | `results/followup_provider_pinned/` | `followup.metrics.bootstrap_difference` | `report/report.md` | verified |
-| `s2b_h2_delta` | -0.15 | `results/followup_provider_pinned/` | `followup.metrics.bootstrap_difference` | `report/report.md` | verified |
+| `s1_gemini_perm_p_dir` | 0.0019 | `results/main/summary.json` | `metrics.permutation_null` | `report/report.md`, `README.md` | verified |
+| `s1_gemini_perm_p_rho` | 0.0001 | `results/main/summary.json` | `metrics.permutation_null` | `report/report.md`, `README.md` | verified |
+| `s1_llama_perm_p_dir` | 0.1231 | `results/main/summary.json` | `metrics.permutation_null` | `report/report.md`, `README.md` | verified |
+| `s1_llama_perm_p_rho` | 0.0693 | `results/main/summary.json` | `metrics.permutation_null` | `report/report.md`, `README.md` | verified |
+| `s1_qwen_perm_p_dir` | 0.2736 | `results/main/summary.json` | `metrics.permutation_null` | `report/report.md`, `README.md` | verified |
+| `s1_qwen_perm_p_rho` | 0.4325 | `results/main/summary.json` | `metrics.permutation_null` | `report/report.md`, `README.md` | verified |
+| `s2b_20b_mean_abs_position` | 0.608 | `results/followup_provider_pinned/` | `followup.metrics.decompose` | `report/report.md`, `README.md` | verified |
+| `s2b_120b_mean_abs_position` | 0.942 | `results/followup_provider_pinned/` | `followup.metrics.decompose` | `report/report.md`, `README.md` | verified |
+| `s2b_h1_delta` | -0.333 | `results/followup_provider_pinned/` | `followup.metrics.bootstrap_difference` | `report/report.md`, `README.md` | verified |
+| `s2b_h2_delta` | -0.15 | `results/followup_provider_pinned/` | `followup.metrics.bootstrap_difference` | `report/report.md`, `README.md` | verified |
 | `total_models` | 5 | `configs/models.yaml + configs/followup*.yaml` | `claims.build` | — | derived (not quoted in prose) |
 | `total_model_families` | 4 | `configs/models.yaml + configs/followup*.yaml` | `claims.build` | — | derived (not quoted in prose) |
 

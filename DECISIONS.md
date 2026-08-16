@@ -9,6 +9,55 @@
 
 ---
 
+## D-37 — Post-audit consistency pass: the repository told three versions of the story
+
+**During review of the audit commit** a reader found that the statistical fixes
+had landed but the documentation had not caught up, so which conclusion you got
+depended on which file you opened first. Twelve inconsistencies, all
+documentation rather than analysis:
+
+1. The README headline still printed the **withdrawn** parametric baseline
+   (0.50 / 0.833, 0.25 / 0.58) and "only Gemini exceeds the chance ceiling",
+   while `metrics.py` marks that baseline deprecated and the report uses the
+   permutation null.
+2. The README still presented the **unpinned** Study 2 as the controlled result.
+3. The Discussion said "within one family and one provider" but quoted the
+   uncontrolled deltas (−0.483 / −0.217).
+4. §5 described Study 2 as holding provider fixed; only §6.4 admitted otherwise.
+5. The §4.2 table still carried the "items with signal" column derived from the
+   0.15 cut that D-35 removed from the code.
+6. §3.5 still described the withdrawn baseline as the methodology.
+7. The Discussion flattened Llama to "chance-level", contradicting the careful
+   results section.
+8. Qwen was described as having "expressed no differential preference", an
+   ontological claim the data cannot support.
+9. "Nothing for the methods to agree about" — same problem, softer.
+10. The recommendation implied position diagnostics validate genuine preference.
+11. The cross-study table used unpinned GPT-OSS figures.
+12. The README kept the "only one kind of evidence" overstatement.
+
+**Resolved.** README headline rewritten around the permutation null and Study 2b;
+§5 retitled "Initial within-family follow-up" with the incomplete provider control
+disclosed up front and the design table marking the upstream provider "not pinned,
+not recorded"; Discussion quotes the provider-controlled deltas; the 0.15-derived
+column replaced with mean/median/max; §3.5 describes the permutation procedure;
+Llama described uniformly as ambiguous; Qwen framed as "no detectable
+order-invariant differential signal under this protocol"; the recommendation now
+says position diagnostics detect order sensitivity rather than validate
+preference; the cross-study table uses Study 2b and labels it.
+
+**Guards added.** Ten regex patterns covering exactly these regressions, checked
+per document, with meta-tests asserting each catches the sentence that actually
+shipped. Claim routing updated so superseded Study 2 figures are expected only in
+the report and decision log, while Study 2b figures and the permutation p-values
+are required in the README.
+
+No experiment was re-run and no number changed. **This entry exists because the
+failure mode — analysis correct, documentation stale — is the one most likely to
+recur, and it was caught by a reader rather than by the suite.**
+
+---
+
 ## D-32 — The Study 1 chance baseline was mis-specified and has been replaced
 
 **During final audit** we found the parametric "random baseline" did not match the

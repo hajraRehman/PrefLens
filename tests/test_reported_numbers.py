@@ -124,6 +124,35 @@ FORBIDDEN_PHRASES = [
      "withdrawn total; use the reconciled record counts (D-36)"),
     (r"simulated chance ceiling|indistinguishable from chance",
      "withdrawn parametric baseline; use the matched permutation null (D-32)"),
+
+    # --- post-audit consistency: the repository must tell ONE version of the
+    # story regardless of which file a reader opens first. ---
+
+    # Deprecated parametric-baseline numbers.
+    (r"simulated chance[^.]{0,40}0\.50|0\.50 \(95th pct 0\.833\)|95th pct 0\.58\b",
+     "deprecated parametric baseline values (0.50/0.833, 0.25/0.58) — withdrawn (D-32)"),
+    (r"chance ceiling",
+     "'chance ceiling' referred to the withdrawn baseline; cite the permutation null"),
+    # The 0.15-derived categorical metric.
+    (r"items with signal(?![^.]{0,120}removed)",
+     "the |content| > 0.15 count was removed as unjustified (D-35)"),
+    # Treating the UNPINNED Study 2 as provider-controlled.
+    (r"within one family and one provider[^.]{0,120}0\.483",
+     "-0.483 is the provider-UNCONTROLLED estimate; the controlled value is -0.333 (D-33)"),
+    (r"study 2[^.]{0,80}\bsame provider\b(?![^.]{0,200}(not pinned|uncontrolled|2b))",
+     "Study 2 did not control the upstream provider; Study 2b is the controlled run"),
+    # Over-flat Llama characterisation.
+    (r"chance-level convergence on the two open-weight models",
+     "Llama is ambiguous, not chance-level; see the permutation-null results"),
+    # Ontological framing of an absent measurement.
+    (r"nothing (for the methods )?to agree about",
+     "say the measure supplied no detectable order-invariant signal"),
+    (r"only one kind of evidence",
+     "convergent validity is one source of evidence, not the only one"),
+    # Recommendation overreach.
+    (r"separates a measured preference from an artefact|"
+     r"cannot be distinguished from\s+an artefact of where",
+     "position diagnostics detect order sensitivity; they do not validate preference"),
 ]
 
 
@@ -146,6 +175,17 @@ def test_forbidden_wording_guard_catches_known_bad_sentences():
         "there was nothing to agree about",
         "4,232 calls were logged",
         "Llama was indistinguishable from chance",
+        # Post-audit consistency regressions.
+        "| *simulated chance* | *0.50 (95th pct 0.833)* |",
+        "Only Gemini's convergence exceeds the chance ceiling.",
+        "| model | method | mean content | mean position | items with signal |",
+        "within one family and one provider, the larger model was more "
+        "position-dominated (delta 0.483)",
+        "Study 2 used the same provider for both models",
+        "Study 1 found chance-level convergence on the two open-weight models",
+        "there was nothing for the methods to agree about",
+        "that leaves only one kind of evidence available",
+        "it is what separates a measured preference from an artefact",
     ]
     for sentence in bad:
         t = _norm(sentence).lower()

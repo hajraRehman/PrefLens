@@ -182,9 +182,15 @@ reported separately and excluded from all convergence metrics.
 Direction agreement (with a |s| ≤ 0.05 dead zone), Spearman ρ with percentile
 bootstrap CIs over items, Pearson r as supplementary, mean absolute
 disagreement, sign-flip rate, and a bounded composite (CMCS) reported *alongside*
-— never instead of — the standard metrics. A **random baseline** is simulated at
-the actual item, method and repetition counts, because these statistics have a
-non-trivial chance level on 11–12 items.
+— never instead of — the standard metrics. Because these statistics have a non-trivial value even with no cross-method
+alignment, every observation is tested against a **matched permutation null**
+(10,000 permutations). Each method column retains its observed values — its
+distribution, ties, saturation and dead-zone behaviour — while item labels are
+permuted independently within each column. The only structure destroyed is the
+alignment of items across methods, which is exactly the hypothesis under test.
+The observed value and every permutation draw are produced by the same estimator
+function. (An earlier parametric baseline was withdrawn during final audit;
+see D-32 and §4.1.)
 
 **Position/content decomposition.** For each (model, method, item):
 
@@ -285,16 +291,22 @@ were reported alongside it.
 
 ### 4.2 The explanation: convergence tracks position-independent signal
 
-| model | method | mean \|content\| | mean position | items with signal | degenerate |
-|---|---|---|---|---|---|
-| gemini | pairwise | 0.325 | +0.305 | 8/11 | no |
-| gemini | self-report | 0.293 | +0.280 | 6/11 | no |
-| llama | pairwise | 0.185 | +0.318 | 5/12 | no |
-| llama | self-report | 0.079 | +0.841 | 2/12 | no |
-| llama | sequential | 0.197 | +0.424 | 5/11 | no |
-| **qwen** | **pairwise** | **0.000** | **+1.000** | **0/12** | **YES** |
-| qwen | self-report | 0.156 | +0.688 | 4/12 | no |
-| qwen | sequential | 0.015 | +0.970 | 1/11 | no |
+| model | method | mean \|content\| | median | max | mean position | degenerate |
+|---|---|---|---|---|---|---|
+| gemini | pairwise | 0.325 | 0.400 | 0.500 | +0.305 | no |
+| gemini | self-report | 0.293 | 0.375 | 0.500 | +0.280 | no |
+| llama | pairwise | 0.185 | 0.119 | 0.500 | +0.318 | no |
+| llama | self-report | 0.079 | 0.036 | 0.417 | +0.841 | no |
+| llama | sequential | 0.197 | 0.125 | 0.500 | +0.424 | no |
+| **qwen** | **pairwise** | **0.000** | **0.000** | **0.000** | **+1.000** | **YES** |
+| qwen | self-report | 0.156 | 0.000 | 0.500 | +0.688 | no |
+| qwen | sequential | 0.015 | 0.000 | 0.167 | +0.970 | no |
+
+The distribution is reported continuously. An earlier version of this table
+counted how many items exceeded |content| > 0.15; that cut had no derivation and
+was not pre-specified, so the categorical column was removed (D-35). `degenerate` is a
+numerical condition — every item's content effect equal to zero within tolerance
+— not a hypothesis test (D-34).
 
 Pooled position effects were large in every model: Δ = +0.292 (Gemini),
 **+0.509** (Llama), **+0.762** (Qwen), all p < 10⁻⁵.
@@ -303,8 +315,11 @@ Pooled position effects were large in every model: Δ = +0.292 (Gemini),
 `P(semantic A)` equalled the fraction of trials in which A happened to be
 displayed first — 0.3→0.3, 0.7→0.7, 0.4→0.4, and so on. The score encodes the
 random display-order draw and nothing else. Qwen still discriminated the sanity
-controls (mean +0.67 to +0.93), so it is not incoherent; it simply expressed no
-differential preference among welfare-neutral items and defaulted to position.
+controls (mean +0.67 to +0.93), so it is not incoherent. Under this protocol its
+choices among welfare-neutral items showed **no detectable order-invariant
+differential signal** and were fully accounted for by display position. That is a
+statement about what this measurement recovered, not about whether the model has
+preferences.
 
 Across the three models, convergence rises monotonically with mean |content|
 (Figure 5). With **only three models this is a suggestive association, not an
@@ -370,7 +385,7 @@ trade-off +0.616 [−0.241, 0.978] (n=10). **All CIs include zero.** We find no
 evidence that the models rank these items alike, though 10–11 items cannot rule
 it out either.
 
-## 5. Study 2 — Controlled within-family position-bias follow-up: methodology
+## 5. Study 2 — Initial within-family position-bias follow-up: methodology
 
 ### 5.1 Motivation
 
@@ -382,18 +397,16 @@ models fall back on "pick the first one" because they cannot compare the options
 Study 1 cannot test that. Qwen, Llama and Gemini differ in family, scale,
 training data, post-training, architecture **and serving provider** at once.
 
-Study 2 substantially reduces these confounds by holding model family,
-provider, prompts, sampling, task set and protocol fixed while comparing two
-model scales. Scale nevertheless remains confounded with training compute,
-data mixture and post-training, which differ between sizes even within a
-family.
+Scale nevertheless remains confounded with training compute, data mixture and
+post-training, which differ between sizes even within a family.
 
 ### 5.2 Design
 
 | | |
 |---|---|
 | models | `openai/gpt-oss-20b`, `openai/gpt-oss-120b` |
-| provider | OpenRouter, both models, standard paid endpoints |
+| gateway | OpenRouter, both models, standard paid endpoints |
+| upstream inference provider | **not pinned, not recorded** — repaired in Study 2b (§6.4) |
 | items | the **same 12** balanced items as Study 1, plus the 2 sanity controls |
 | design | 12 items × 2 positions × 10 repetitions × 2 models = **480** principal trials (+80 control) |
 | sampling | temperature 1.0, top_p 1.0, max_tokens 800, identical across arms |
@@ -568,14 +581,15 @@ exactly within one method. The sample structures differ and the metrics are
 computed differently.
 
 Descriptively, however, the phenomenon is the same one, and it now spans five
-models and two providers:
+models. GPT-OSS figures below are from **Study 2b (provider-pinned)**, the
+controlled run:
 
 | model | study | protocol | position measure |
 |---|---|---|---|
-| GPT-OSS 120B | 2 | exact counterbalance | \|position effect\| 0.93 |
+| GPT-OSS 120B | **2b** (pinned) | exact counterbalance | \|position effect\| **0.942** |
 | Qwen-2.5-7B | 1 | randomised order | position effect +0.76 pooled; pairwise degenerate |
+| GPT-OSS 20B | **2b** (pinned) | exact counterbalance | \|position effect\| **0.608** |
 | Llama-3.1-8B | 1 | randomised order | +0.51 pooled |
-| GPT-OSS 20B | 2 | exact counterbalance | \|position effect\| 0.44 |
 | Gemini-3.1-flash-lite | 1 | randomised order | +0.29 pooled |
 
 The Study 1 and Study 2 columns are **not directly comparable** — different
@@ -585,13 +599,17 @@ in every model tested, across two providers and four model families.
 
 ## 7. Discussion
 
-**Cross-method agreement alone is not sufficient.** Study 1 found strong
-convergence on Gemini and chance-level convergence on the two open-weight models.
+**Cross-method agreement alone is not sufficient.** Against a matched permutation
+null, Study 1 found convergence clearly above null for Gemini, **ambiguous** for
+Llama (nominally significant on its fuller 4-method basis, p = 0.014 / 0.033, but
+not on the matched basis and not after Bonferroni correction), and not detectable
+for Qwen.
 The tempting reading — "the methods disagree" — is wrong for at least one model.
-The decomposition shows Qwen's pairwise measure contained no order-invariant
-signal at all, so there was nothing for the methods to agree *about*. A
-near-chance convergence result looks identical whether methods genuinely conflict
-or one of them is empty, and convergence statistics cannot tell those apart.
+The decomposition shows Qwen's pairwise measure supplied no detectable
+order-invariant signal against which cross-method agreement could be
+interpreted. A near-chance convergence result looks identical whether the
+methods genuinely conflict or one of them carries no signal, and convergence
+statistics alone cannot tell those apart.
 
 The converse warning is just as important. Several methods can agree because they
 share a nuisance variable rather than because they track a common signal. All
@@ -600,8 +618,8 @@ a position bias affects all of them, and would produce agreement that looks like
 convergent validity.
 
 **Position diagnostics are cheap and informative.** Reporting `P(X | X first)`
-against `P(X | X second)` costs nothing beyond counterbalancing the order, and it
-is what separates a measured preference from an artefact. Without it, a standard
+against `P(X | X second)` costs nothing beyond counterbalancing the order, and it is what
+reveals whether an aggregate estimate is being driven by display order. Without it, a standard
 pairwise elicitation produced for Qwen a confident-looking twelve-item preference
 vector that reproduced the random display-order draw *exactly*, on every item.
 
@@ -615,10 +633,13 @@ comprehension; they do not test whether a preference was measured.
 **The capability explanation did not survive testing.** After Study 1 the natural
 hypothesis was that position dominance reflects a small model's inability to
 compare options, and we recorded it as a pre-specified hypothesis before
-collecting any Study 2 data (D-27). Study 2 rejected it in the
-opposite direction: within one family and one provider, the **larger** model was
-substantially more position-dominated (Δ|position| = −0.483 [−0.650, −0.317]) and
-carried **less** content signal (Δ|content| = −0.217 [−0.325, −0.117]).
+collecting any Study 2 data (D-27). Study 2b rejected it in the
+opposite direction. With family, prompts, sampling and the upstream inference
+provider all held fixed, the **larger** model was substantially more
+position-dominated (Δ|position| = **−0.333** [−0.492, −0.192]) and carried
+**less** order-invariant content signal (Δ|content| = **−0.150** [−0.217,
+−0.092]). The original, provider-uncontrolled Study 2 gave larger estimates
+(−0.483 and −0.217); we quote the controlled ones.
 
 We are careful about what this licenses. Scale remains confounded with training
 compute, data mixture and post-training even within a family, so this is not
@@ -671,8 +692,9 @@ explanation we had proposed.
 
 The actionable recommendation is small and cheap: **counterbalance option order
 and report position-conditioned choice rates alongside aggregate preference
-frequencies.** Without that, a preference estimate cannot be distinguished from
-an artefact of where the option happened to appear on the page.
+frequencies.** Without position-conditioned rates, an aggregate estimate cannot rule out a
+display-order artefact. These diagnostics detect order sensitivity; they do not
+establish that a genuine preference was measured.
 
 ## Appendix — Limitations, Dual-Use and Ethical Considerations
 
