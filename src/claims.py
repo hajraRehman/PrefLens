@@ -108,6 +108,69 @@ def build() -> dict:
             round(first / len(r), 4), f"{100 * first / len(r):.2f}%",
             [REPORT, README, DECISIONS])
 
+    # ------------------------------------------------- reconciled record counts
+    def _counts(dirs, prefix):
+        rec = ok = att = 0
+        for d, fname in dirs:
+            f = ROOT / "data" / "raw" / d / fname
+            if not f.exists():
+                continue
+            rows = [json.loads(l) for l in f.read_text(encoding="utf-8").splitlines() if l.strip()]
+            rec += len(rows)
+            ok += sum(1 for r in rows if r.get("call_ok"))
+            att += sum(int(r.get("attempts", (r.get("retry_count") or 0) + 1) or 1) for r in rows)
+        return rec, ok, att
+
+    s1 = _counts([("pilot", "raw_observations.jsonl"),
+                  ("main", "raw_observations.jsonl"),
+                  ("manipulation_check", "raw_observations.jsonl")], "s1")
+    if s1[0]:
+        claims["s1_trial_records"] = _claim(
+            s1[0], f"{s1[0]:,}", [REPORT], "rows in Study 1 raw JSONL; NOT 'calls'")
+        claims["s1_successful_responses"] = _claim(s1[1], f"{s1[1]:,}", [REPORT])
+        claims["s1_api_attempts"] = _claim(s1[2], f"{s1[2]:,}", [REPORT])
+
+    s2b = _counts([("followup_gpt_oss_provider_pinned", "main_raw_observations.jsonl")], "s2b")
+    if s2b[0]:
+        claims["s2b_trial_records"] = _claim(s2b[0], f"{s2b[0]}", [REPORT])
+
+    # ------------------------------------------------------- permutation null
+    if S1_SUMMARY.exists():
+        ms = json.loads(S1_SUMMARY.read_text(encoding="utf-8"))["matched_subset"]
+        for mk, short in (("gemini-31-flash-lite", "gemini"),
+                          ("llama31-8b", "llama"), ("qwen25-7b", "qwen")):
+            pn = ms["per_model"][mk].get("permutation_null", {})
+            for stat, tag in (("mean_direction_agreement", "dir"),
+                              ("mean_spearman_rho", "rho")):
+                r = pn.get(stat)
+                if r:
+                    claims[f"s1_{short}_perm_p_{tag}"] = _claim(
+                        round(r["p_empirical"], 4), f"{r['p_empirical']:.4f}",
+                        [REPORT], "matched-subset permutation p-value")
+
+    # --------------------------------------------- Study 2b (provider pinned)
+    s2b_sum = ROOT / "results" / "followup_provider_pinned" / "statistics" / "followup_summary.json"
+    if s2b_sum.exists():
+        d = json.loads(s2b_sum.read_text(encoding="utf-8"))
+        for mk, short in (("gpt-oss-20b", "20b"), ("gpt-oss-120b", "120b")):
+            pm = d["per_model"][mk]
+            claims[f"s2b_{short}_mean_abs_position"] = _claim(
+                round(pm["mean_abs_position_effect"]["mean"], 3),
+                f"{pm['mean_abs_position_effect']['mean']:.3f}", [REPORT])
+        for key, tag in (("H1_delta_position_small_minus_large", "h1"),
+                         ("H2_delta_content_large_minus_small", "h2")):
+            v = d["hypotheses"][key]
+            claims[f"s2b_{tag}_delta"] = _claim(
+                round(v["diff"], 3), f"{abs(v['diff']):.3f}", [REPORT])
+
+    # --------------------------------------------------------- model counts
+    import yaml
+    m1 = yaml.safe_load((ROOT / "configs" / "models.yaml").read_text(encoding="utf-8"))["models"]
+    used1 = [m for m in m1 if m["key"] in ("llama31-8b", "qwen25-7b", "gemini-31-flash-lite")]
+    fams = {m["family"] for m in used1} | {"gpt-oss"}
+    claims["total_models"] = _claim(len(used1) + 2, f"{len(used1) + 2}", [], "3 in S1 + 2 in S2")
+    claims["total_model_families"] = _claim(len(fams), f"{len(fams)}", [], sorted(fams))
+
     return claims
 
 

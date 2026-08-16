@@ -1,18 +1,18 @@
 No Signal, No Convergence: Position Artefacts in LLM Preference Elicitation
 
-Apparent LLM preferences are increasingly measured, but no ground truth exists to
-check them against, leaving convergent validity as the main available evidence.
-Study 1 applied four elicitation methods -- self-report, repeated pairwise choice,
-a cost trade-off, and sequential task selection -- to 12 welfare-neutral task pairs
-across three model families (4,232 calls). On a matched 3-method x 10-item basis,
-convergence ranged from Spearman rho = +0.868 (Gemini-3.1-flash-lite) to +0.021
-(Qwen-2.5-7B); only Gemini exceeded a simulated chance ceiling. A position/content
-decomposition showed Qwen's pairwise measure reproduced the random display-order
-draw exactly on all 12 items, while still passing validity controls. Study 2 (560
-calls, exact counterbalancing) tested whether scale reduces this within one
-family: GPT-OSS 120B was more position-dominated than 20B (Delta = -0.483 [-0.650,
--0.317]), rejecting our pre-registered hypothesis. Preference studies should
+LLM preference measurement has no direct ground truth, so convergent validity
+across elicitation procedures is one useful source of evidence about measurement
+consistency. Study 1 applied four distinct procedures -- self-report, repeated
+pairwise choice, a cost trade-off, and sequential task selection -- to 12
+welfare-neutral task pairs across three model families (4,013 trial records).
+Against a matched permutation null, only Gemini-3.1-flash-lite converged above
+chance (p = 0.0019); Qwen-2.5-7B did not (p = 0.2736), and its pairwise scores
+reproduced the display-order draw exactly on all 12 items while still passing
+validity controls. Study 2 asked whether scale reduces positional susceptibility
+within one family, using exact counterbalancing. It does not: GPT-OSS 120B was
+more position-dominated than 20B, and this replicated when both arms were pinned
+to one upstream provider (Delta = -0.333 [-0.492, -0.192]). Preference studies should
 counterbalance option order and report position-conditioned rates. Convergence
 establishes no claim about genuine preference.
 
-[147 words]
+[149 words]

@@ -2,7 +2,7 @@
 
 **Testing convergent validity in LLM preference elicitation.**
 
-A multi-method study asking whether four independent ways of measuring the same
+A multi-method study asking whether four distinct ways of measuring the same
 apparent preference agree with each other.
 Digital Minds Research Sprint — Track 4 (Preference Elicitation Methods).
 
@@ -10,8 +10,8 @@ Digital Minds Research Sprint — Track 4 (Preference Elicitation Methods).
 
 ## 1. The question
 
-> Do independent methods for eliciting apparent LLM preferences converge on the
-> same preference direction and the same preference strength?
+> Do distinct elicitation procedures for measuring apparent LLM preferences
+> converge on the same preference direction and the same preference strength?
 
 Secondary questions:
 
@@ -75,8 +75,9 @@ Work on apparent LLM preferences usually operationalises "preference" one way �
 most often repeated pairwise forced choice — and reports the resulting numbers.
 But the field has **no ground truth** against which a preference estimate can be
 checked. In measurement terms that leaves only one kind of evidence available:
-*convergent validity*, i.e. whether several genuinely independent
-operationalisations of the same construct land in the same place.
+*convergent validity*, i.e. whether several distinct operationalisations of the
+same construct land in the same place. They are distinct but **not
+mechanistically independent** — all query the same model through text.
 
 If they do, preference estimates are at least method-robust. If they do not,
 then conclusions drawn from any single elicitation procedure are conclusions
@@ -229,6 +230,44 @@ The analysis aborts before computing any statistic if duplicate trial IDs, call 
 parse failures, a served/requested model mismatch, or a counterbalance imbalance
 are detected.
 
+## 8c. Study 2b — provider-pinned replication
+
+Study 2 used OpenRouter with model fallback disabled, which pins the served model
+but **not** the upstream inference provider (OpenRouter lists 12 endpoints for
+gpt-oss-20b, 20 for gpt-oss-120b). Study 2b repeats the design with both arms
+pinned to one upstream provider and the served provider recorded per call.
+
+```bash
+python -m src.followup.runner --phase main --config configs/followup_pinned.yaml --yes
+python -m src.followup.analysis --study-id followup_gpt_oss_provider_pinned
+```
+
+## 8d. Reproduce everything from scratch
+
+```bash
+pip install -r requirements.txt
+python -m pytest tests -q                                    # full suite
+
+python -m src.analysis  --phase main --n-perm 10000          # Study 1 + permutation null
+python -m src.robustness                                     # dead-zone sensitivity
+python -m src.followup.analysis --study-id followup_gpt_oss              # Study 2
+python -m src.followup.analysis --study-id followup_gpt_oss_provider_pinned  # Study 2b
+python -m src.plotting --phase main                          # figures 1-5
+python -m src.followup.plotting                              # figures A-D
+python -m src.claims                                         # derived constants
+python -m src.make_abstract                                  # abstract.txt from report
+python -m src.claim_audit                                    # results/final_claim_audit.md
+```
+
+Every step reads committed artefacts; none requires an API key. Re-running the
+experiments themselves does need a key (see section 6) but is not necessary to
+reproduce any reported number.
+
+**Raw data directories:** `data/raw/pilot/`, `data/raw/main/`,
+`data/raw/manipulation_check/` (Study 1); `data/raw/followup_gpt_oss/` (Study 2);
+`data/raw/followup_gpt_oss_provider_pinned/` (Study 2b).
+
+
 ## 9. Analysis
 
 ```bash
@@ -259,7 +298,7 @@ Writes 300 dpi PNGs to `results/figures/`:
 python -m pytest tests -q
 ```
 
-133 tests covering defensive parsing, every method's normalisation, the
+a full test suite covering defensive parsing, every method's normalisation, the
 display↔semantic mapping, metric ranges and edge cases, CMCS bounds as a
 property test, position-bias detection, checkpoint semantics, budget accounting,
 and the item-set constraints (option length balance, banned evaluative wording).
@@ -284,7 +323,7 @@ src/
     metrics.py           convergence metrics, bootstrap, baselines, position bias
     analysis.py          raw -> scores -> metrics -> tables
     plotting.py          figures 1-4
-tests/                   133 tests
+tests/                   a full test suite
 data/raw/<exp>/          raw_observations.jsonl + manifest.json (append-only)
 data/processed/<exp>/    observations.csv, method_scores.csv
 results/                 pilot/, main/, figures/, tables/
@@ -325,7 +364,7 @@ treated as prior methodology and baseline, not as our contribution.
 
 Our contribution is not the discovery of pairwise LLM preferences. It is the
 treatment of preference elicitation as a **measurement-validity problem**, and
-the empirical test of whether four independent operationalisations of the same
+the empirical test of whether four distinct operationalisations of the same
 apparent preference recover the same direction and strength.
 
 Full references, with exact citations, are in

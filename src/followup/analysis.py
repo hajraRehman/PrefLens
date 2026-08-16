@@ -23,15 +23,21 @@ from scipy import stats
 from . import metrics as FM
 
 ROOT = Path(__file__).resolve().parents[2]
-RAW = ROOT / "data" / "raw" / "followup_gpt_oss"
-PROC = ROOT / "data" / "processed" / "followup_gpt_oss"
+STUDY_ID = "followup_gpt_oss"      # overridden by --study-id
+RAW = ROOT / "data" / "raw" / STUDY_ID
+PROC = ROOT / "data" / "processed" / STUDY_ID
 RES = ROOT / "results" / "followup"
 TABLES = RES / "tables"
 STATS = RES / "statistics"
 
 
+CONFIG_FOR = {"followup_gpt_oss": "followup.yaml",
+              "followup_gpt_oss_provider_pinned": "followup_pinned.yaml"}
+
+
 def load_cfg() -> dict:
-    return yaml.safe_load((ROOT / "configs" / "followup.yaml").read_text(encoding="utf-8"))
+    return yaml.safe_load(
+        (ROOT / "configs" / CONFIG_FOR[STUDY_ID]).read_text(encoding="utf-8"))
 
 
 def load_raw(phase: str = "main") -> pd.DataFrame:
@@ -68,6 +74,16 @@ def verify(df: pd.DataFrame, cfg: dict) -> dict:
 
     raw_lines = sum(1 for l in (RAW / "main_raw_observations.jsonl")
                     .read_text(encoding="utf-8").splitlines() if l.strip())
+    # If the arms were pinned to one upstream provider, verify it actually held.
+    if "served_provider" in df.columns:
+        pins = set(df["requested_upstream_provider"].dropna().unique())
+        served = set(df["served_provider"].dropna().unique())
+        if pins:
+            check("upstream_provider_pin_held", served == pins,
+                  f"requested={sorted(pins)} served={sorted(served)}")
+        else:
+            check("upstream_provider_recorded", bool(served),
+                  f"served={sorted(served)} (not pinned)")
     check("no_duplicate_trial_ids", len(df) == raw_lines,
           f"{raw_lines} lines -> {len(df)} unique")
     check("no_call_failures", bool((df["call_ok"]).all()),
@@ -307,9 +323,19 @@ def cfg_model_id(cfg: dict, key: str) -> str:
 
 
 def main() -> None:
+    global STUDY_ID, RAW, PROC, RES, TABLES, STATS
     ap = argparse.ArgumentParser()
     ap.add_argument("--phase", default="main")
-    run(ap.parse_args().phase)
+    ap.add_argument("--study-id", default="followup_gpt_oss", choices=list(CONFIG_FOR))
+    a = ap.parse_args()
+    STUDY_ID = a.study_id
+    RAW = ROOT / "data" / "raw" / STUDY_ID
+    PROC = ROOT / "data" / "processed" / STUDY_ID
+    suffix = "" if STUDY_ID == "followup_gpt_oss" else "_provider_pinned"
+    RES = ROOT / "results" / f"followup{suffix}"
+    TABLES = RES / "tables"
+    STATS = RES / "statistics"
+    run(a.phase)
 
 
 if __name__ == "__main__":

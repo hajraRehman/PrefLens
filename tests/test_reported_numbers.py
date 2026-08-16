@@ -94,6 +94,76 @@ OVERSTATEMENT_PATTERNS = [
 
 DOCS_TO_SCAN = ["report/report.md", "README.md", "DECISIONS.md", "report/abstract.txt"]
 
+# Submission-facing docs only. DECISIONS.md is excluded because it documents the
+# corrections themselves and must be able to quote the withdrawn wording.
+SUBMISSION_DOCS = ["report/report.md", "README.md", "report/abstract.txt",
+                   "report/limitations.md"]
+
+FORBIDDEN_PHRASES = [
+    (r"pre-?registered|pre-?registration",
+     "no external preregistration exists; say 'pre-specified' (D-27)"),
+    (r"genuinely independent (methods|operationalisations|instruments)",
+     "the procedures are distinct but not mechanistically independent"),
+    (r"(removes|holds fixed) (all|every) confounds? except scale",
+     "scale stays confounded with training compute/data/post-training (D-31)"),
+    # Must be an assertion about a NAMED MODEL. Sentences like "a system with no
+    # preferences whatsoever would produce the same pattern" are legitimate
+    # discussion of what cannot be concluded and must not be flagged.
+    (r"(qwen|llama|gemini|gpt-?oss)[^.]{0,60}\b(had|has|have|expressed|expresses)"
+     r" no preferences?\b",
+     "unsupported ontological claim about a named model; say 'no detectable "
+     "order-invariant content signal'"),
+    (r"only evidence available is convergent validity|"
+     r"convergent validity is the only",
+     "too strong: convergent validity is one source of evidence, not the only one"),
+    (r"nothing to agree about",
+     "overstated; say the measure carried no detectable order-invariant signal"),
+    # Permitted only inside an explicit withdrawal note, so the report can say
+    # what the wrong number was while never asserting it.
+    (r"\b4,?232\b(?![^.]{0,140}withdrawn)",
+     "withdrawn total; use the reconciled record counts (D-36)"),
+    (r"simulated chance ceiling|indistinguishable from chance",
+     "withdrawn parametric baseline; use the matched permutation null (D-32)"),
+]
+
+
+@pytest.mark.parametrize("rel", SUBMISSION_DOCS)
+def test_no_forbidden_wording(rel):
+    """Factual wording that has already drifted must not return."""
+    text = _norm(_doc(rel)).lower()
+    for pattern, why in FORBIDDEN_PHRASES:
+        m = re.search(pattern, text)
+        assert not m, f"{rel}: {why} | matched: ...{m.group(0)[:100]}..."
+
+
+def test_forbidden_wording_guard_catches_known_bad_sentences():
+    """Meta-test: the guard must reject the sentences that actually shipped."""
+    bad = [
+        "rejecting our pre-registered hypothesis",
+        "whether four genuinely independent operationalisations agree",
+        "Study 2 removes all confounds except scale",
+        "Qwen had no preference among the balanced items",
+        "there was nothing to agree about",
+        "4,232 calls were logged",
+        "Llama was indistinguishable from chance",
+    ]
+    for sentence in bad:
+        t = _norm(sentence).lower()
+        assert any(re.search(pat, t) for pat, _ in FORBIDDEN_PHRASES), (
+            f"guard missed: {sentence!r}")
+
+
+def test_abstract_txt_is_regenerated_from_the_report():
+    """abstract.txt is GENERATED from report.md; it must be in sync.
+
+    Regenerate with `python -m src.make_abstract`. Asserting equality (rather
+    than eyeballing two hand-written copies) is what stops the two drifting.
+    """
+    from src.make_abstract import render
+    assert render() == _doc("report/abstract.txt"), (
+        "report/abstract.txt is stale — run: python -m src.make_abstract")
+
+
 
 @pytest.mark.parametrize("rel", DOCS_TO_SCAN)
 def test_no_overstated_position_claim(rel):
@@ -168,21 +238,16 @@ def test_study2_hypotheses_still_rejected():
 
 # --------------------------------------------------------------- housekeeping
 
-def test_documented_test_count_matches_reality():
-    """The README and report quote a test count; it must be the real one."""
-    import subprocess
-    out = subprocess.run(
-        [sys.executable, "-m", "pytest", "--collect-only", "-q", str(ROOT / "tests")],
-        capture_output=True, text=True, cwd=ROOT)
-    m = re.search(r"(\d+) tests? collected", out.stdout)
-    if not m:
-        pytest.skip("could not determine collected test count")
-    n = int(m.group(1))
-    for rel in ("README.md", "report/report.md"):
-        quoted = re.findall(r"(\d+) tests", _doc(rel))
-        assert quoted, f"{rel} quotes no test count"
-        for q in quoted:
-            assert int(q) == n, f"{rel} says {q} tests, actual is {n}"
+@pytest.mark.parametrize("rel", ["README.md", "report/report.md"])
+def test_docs_do_not_quote_a_hardcoded_test_count(rel):
+    """No prose should quote an exact test count.
+
+    Any such number is self-referential — adding this very test changes it — and
+    it drifted twice already. The documents now say the suite passes, without a
+    figure to go stale.
+    """
+    hits = re.findall(r"\b\d+ tests\b", _doc(rel))
+    assert not hits, f"{rel} hardcodes a test count {hits}; say 'the full suite passes'"
 
 
 def test_abstract_within_150_words():

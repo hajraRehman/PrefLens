@@ -233,9 +233,12 @@ def fig5_signal_vs_convergence(summary: dict, phase: str) -> Path | None:
         ax.set_ylabel(lab)
         ax.set_xlim(-0.02, max(r["content"] for r in rows) * 1.35)
 
-    axes[1].axhline(
-        summary["per_model"][rows[0]["model"]]["random_baseline"]["direction_agreement_mean"],
-        ls=":", color="0.5", lw=1, label="chance")
+    # Matched permutation null (mean across models), not the deprecated
+    # parametric baseline (D-32).
+    nulls = [summary["per_model"][r["model"]]["permutation_null"]
+             ["mean_direction_agreement"]["null_mean"] for r in rows]
+    axes[1].axhline(float(np.mean(nulls)), ls=":", color="0.5", lw=1,
+                    label="permutation null (mean)")
     axes[1].legend(fontsize=7)
     fig.suptitle(
         "Fig 5. Cross-method convergence tracks position-independent signal\n"

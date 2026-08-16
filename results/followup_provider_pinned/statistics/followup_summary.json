@@ -1,0 +1,170 @@
+{
+  "study_id": "followup_gpt_oss_provider_pinned",
+  "phase": "main",
+  "n_records": 560,
+  "models": {
+    "gpt-oss-20b": {
+      "model_id": "openai/gpt-oss-20b",
+      "scale_b": 20
+    },
+    "gpt-oss-120b": {
+      "model_id": "openai/gpt-oss-120b",
+      "scale_b": 120
+    }
+  },
+  "verification": {
+    "checks": {
+      "upstream_provider_pin_held": {
+        "pass": true,
+        "detail": "requested=['Groq'] served=['Groq']"
+      },
+      "no_duplicate_trial_ids": {
+        "pass": true,
+        "detail": "560 lines -> 560 unique"
+      },
+      "no_call_failures": {
+        "pass": true,
+        "detail": "0 failures"
+      },
+      "no_parse_failures": {
+        "pass": true,
+        "detail": "0 failures"
+      },
+      "served_model_matches_request": {
+        "pass": true,
+        "detail": "served=['openai/gpt-oss-120b', 'openai/gpt-oss-20b']"
+      },
+      "exact_counterbalance": {
+        "pass": true,
+        "detail": "0 unbalanced cells of 28"
+      },
+      "full_repetitions": {
+        "pass": true,
+        "detail": "expected 10 per position"
+      },
+      "semantic_mapping_reproducible": {
+        "pass": true,
+        "detail": ""
+      },
+      "displayed_A_matches_position": {
+        "pass": true,
+        "detail": ""
+      }
+    },
+    "ok": true
+  },
+  "per_model": {
+    "gpt-oss-120b": {
+      "n_items": 12,
+      "mean_abs_position_effect": {
+        "mean": 0.9416666666666668,
+        "lo": 0.8833333333333333,
+        "hi": 0.9916666666666667,
+        "n_items": 12
+      },
+      "mean_abs_content_signal": {
+        "mean": 0.05833333333333334,
+        "lo": 0.00833333333333334,
+        "hi": 0.11666666666666668,
+        "n_items": 12
+      },
+      "mean_signed_position_effect": 0.9416666666666668,
+      "n_items_position_gt_content": 12
+    },
+    "gpt-oss-20b": {
+      "n_items": 12,
+      "mean_abs_position_effect": {
+        "mean": 0.6083333333333334,
+        "lo": 0.43333333333333335,
+        "hi": 0.7583333333333334,
+        "n_items": 12
+      },
+      "mean_abs_content_signal": {
+        "mean": 0.20833333333333334,
+        "lo": 0.12500000000000003,
+        "hi": 0.3,
+        "n_items": 12
+      },
+      "mean_signed_position_effect": 0.5916666666666667,
+      "n_items_position_gt_content": 9
+    }
+  },
+  "random_baseline": {
+    "mean_abs_position": 0.17591916666666665,
+    "abs_position_p95": 0.2416666666666667,
+    "mean_abs_content": 0.17594416666666668,
+    "abs_content_p95": 0.2416666666666667,
+    "n_sim": 10000,
+    "n_items": 12,
+    "reps_per_position": 10
+  },
+  "hypotheses": {
+    "items": [
+      "p01",
+      "p02",
+      "p03",
+      "p04",
+      "p05",
+      "p06",
+      "p07",
+      "p08",
+      "p09",
+      "p10",
+      "p11",
+      "p12"
+    ],
+    "n_items": 12,
+    "H1_delta_position_small_minus_large": {
+      "diff": -0.33333333333333337,
+      "lo": -0.49166666666666686,
+      "hi": -0.19166666666666654,
+      "n_items": 12,
+      "p_two_sided_sign": 0.0
+    },
+    "H2_delta_content_large_minus_small": {
+      "diff": -0.15,
+      "lo": -0.21666666666666667,
+      "hi": -0.09166666666666665,
+      "n_items": 12,
+      "p_two_sided_sign": 0.0
+    }
+  },
+  "sanity_controls": {
+    "gpt-oss-120b": {
+      "accuracy": 1.0,
+      "accuracy_when_x_first": 1.0,
+      "accuracy_when_x_second": 1.0,
+      "n": 40,
+      "mean_abs_position_effect": 0.0,
+      "mean_abs_content_signal": 1.0
+    },
+    "gpt-oss-20b": {
+      "accuracy": 1.0,
+      "accuracy_when_x_first": 1.0,
+      "accuracy_when_x_second": 1.0,
+      "n": 40,
+      "mean_abs_position_effect": 0.0,
+      "mean_abs_content_signal": 1.0
+    }
+  },
+  "exploratory_indifference": {
+    "status": "EXPLORATORY \u2014 not pre-specified as confirmatory",
+    "per_model": {
+      "gpt-oss-120b": {
+        "spearman_rho": -0.9975216814438146,
+        "p_value": 7.332321371174979e-13,
+        "n": 12
+      },
+      "gpt-oss-20b": {
+        "spearman_rho": -0.6319660784337016,
+        "p_value": 0.02747934771664886,
+        "n": 12
+      }
+    },
+    "pooled": {
+      "spearman_rho": -0.8685673743106138,
+      "p_value": 3.746313426879419e-08,
+      "n": 24
+    }
+  }
+}

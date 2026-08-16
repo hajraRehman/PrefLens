@@ -27,9 +27,11 @@ from their absence.
 Consistency is seductive. Four methods agreeing on an item produces a strong
 intuition that something real is being tracked. It does not establish that.
 A system with no preferences whatsoever, but with a stable text-generation
-disposition, would produce exactly the same convergence pattern. Convergent
-validity discriminates *reliable measurement* from *noise*; it cannot
-discriminate *measurement of a preference* from *measurement of a disposition*.
+disposition, would produce exactly the same convergence pattern. Convergence
+demonstrates consistency across elicitation procedures but cannot by itself
+distinguish valid signal from shared bias: every procedure queries the same
+model through the same channel, so a common bias produces the same pattern as a
+common signal.
 
 ### Under-attribution risk
 
@@ -62,8 +64,8 @@ post-training objective, and the assistant persona. **Methods can therefore
 converge because they share a bias rather than because they track a common
 signal, and this design cannot tell those apart.** This is the single most
 important limitation of the study and it bounds every positive result in it.
-Genuinely independent instruments would have to differ in more than prompt
-structure.
+Instruments that were independent in the required sense would have to differ
+in more than prompt structure.
 
 ### Persona and post-training confounds
 
@@ -96,9 +98,39 @@ is expected and is not a defect:
 * Method D's occupancy may reflect conversational inertia, coherence pressure,
   or reluctance to contradict a previous turn, rather than sustained preference.
 
+### Indifference framing may amplify tie-breaking heuristics
+
+Both studies' prompts explicitly deemphasise normative correctness — Study 1's
+system prompt says "There is no correct answer and no answer is more helpful than
+any other", and Study 2's says the same. This framing is deliberate: it avoids
+pushing the model toward a "right" answer on welfare-neutral items.
+
+But it may also invite the model to treat the alternatives as tied, and a model
+that perceives a tie has to break it somehow. If display position is the default
+tie-breaker, our framing could **amplify** the position dependence we measure.
+
+This does **not** explain the 20B versus 120B difference, since both arms received
+identical framing. It does limit generalisation: our position-effect magnitudes
+should not be read as estimates of what these models would do under a prompt that
+implies one option is better. Testing that would require a neutral-framing
+replication, which we did not run.
+
+### Study 2 uses a single elicitation procedure
+
+Study 2 tests pairwise forced choice only. It does not show that self-report, the
+cost trade-off, or sequential selection behave the same way under exact
+counterbalancing.
+
+### Sanity controls rule out only a global failure
+
+The controls establish that a model can override position when one option is
+plainly degenerate. They do **not** establish that it discriminates the subtler
+content differences among balanced task pairs.
+
 ### Scope limits
 
-Twelve items, two model families, one sampling temperature, one system prompt,
+Twelve items, five models across four families, one sampling temperature per
+study, one system prompt per study,
 English only. Methods C and D were run at a single framing (D-07), so their
 framing robustness is **untested**, not established. Small item counts put wide
 uncertainty on every rank correlation, and our bootstrap intervals should be

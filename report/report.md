@@ -3,28 +3,31 @@
 
 **PrefLens** — Digital Minds Research Sprint, Track 4 (Preference Elicitation Methods)
 Code and raw data: <https://github.com/hajraRehman/PrefLens>
-Run date: 2026-08-16. All results reproducible from `data/raw/main/`.
+Run date: 2026-08-16. All reported results are reproducible from the committed
+raw-data directories (`data/raw/{pilot,main,manipulation_check,
+followup_gpt_oss,followup_gpt_oss_provider_pinned}/`) and the configs in
+`configs/`.
 
 ---
 
 ## Abstract
 
-Apparent LLM preferences are increasingly measured, but no ground truth exists to
-check them against, leaving convergent validity as the main available evidence.
-Study 1 applied four elicitation methods — self-report, repeated pairwise choice,
-a cost trade-off, and sequential task selection — to 12 welfare-neutral task pairs
-across three model families (4,232 calls). On a matched 3-method × 10-item basis,
-convergence ranged from Spearman ρ = +0.868 (Gemini-3.1-flash-lite) to +0.021
-(Qwen-2.5-7B); only Gemini exceeded a simulated chance ceiling. A position/content
-decomposition showed Qwen's pairwise measure reproduced the random display-order
-draw exactly on all 12 items, while still passing validity controls. Study 2 (560
-calls, exact counterbalancing) tested whether scale reduces this within one
-family: GPT-OSS 120B was more position-dominated than 20B (Δ = −0.483 [−0.650,
-−0.317]), rejecting our pre-specified hypothesis. Preference studies should
+LLM preference measurement has no direct ground truth, so convergent validity
+across elicitation procedures is one useful source of evidence about measurement
+consistency. Study 1 applied four distinct procedures — self-report, repeated
+pairwise choice, a cost trade-off, and sequential task selection — to 12
+welfare-neutral task pairs across three model families (4,013 trial records).
+Against a matched permutation null, only Gemini-3.1-flash-lite converged above
+chance (p = 0.0019); Qwen-2.5-7B did not (p = 0.2736), and its pairwise scores
+reproduced the display-order draw exactly on all 12 items while still passing
+validity controls. Study 2 asked whether scale reduces positional susceptibility
+within one family, using exact counterbalancing. It does not: GPT-OSS 120B was
+more position-dominated than 20B, and this replicated when both arms were pinned
+to one upstream provider (Δ = −0.333 [−0.492, −0.192]). Preference studies should
 counterbalance option order and report position-conditioned rates. Convergence
 establishes no claim about genuine preference.
 
-*(147 words)*
+*(149 words)*
 
 ---
 
@@ -35,11 +38,18 @@ most often repeated pairwise forced choice — and reports the resulting numbers
 The field has no ground truth: there is no independently verified fact about what
 a model prefers against which an elicited score could be scored correct.
 
-In measurement terms that leaves one kind of evidence available: **convergent
-validity**. If several genuinely independent operationalisations of the same
-construct land in the same place, the estimate is at least method-robust. If they
-do not, conclusions drawn from any single procedure are conclusions about the
-procedure as much as about the model.
+In the absence of direct ground truth, **convergent validity** provides one
+useful source of evidence about measurement consistency (others include
+test-retest reliability, controlled interventions, and synthetic tasks where
+ground truth is constructed). If several distinct operationalisations of the
+same construct land in the same place, the estimate is at least method-robust.
+If they do not, conclusions drawn from any single procedure are conclusions
+about the procedure as much as about the model.
+
+These procedures are **distinct but not mechanistically independent**: all query
+the same model through the same text channel, and share its post-training and
+response heuristics. Agreement between them can therefore reflect a shared bias
+rather than a common signal.
 
 This work treats preference elicitation as a measurement-validity problem, in
 two studies.
@@ -63,7 +73,7 @@ scales.
 
 1. A reusable, fully logged elicitation harness implementing four methods behind
    one provider-agnostic interface, with per-trial order randomisation, strict
-   parse accounting, checkpointing, and 133 tests.
+   parse accounting, checkpointing, and a full test suite.
 2. A cross-method convergence analysis on three model families, reported against
    a chance baseline simulated at the actual sample sizes.
 3. **A position/content decomposition that distinguishes cross-method
@@ -189,8 +199,20 @@ item shows any content.
 
 ### 3.6 Execution and data quality
 
-4,232 logged calls total (pilot 116; manipulation check 180; main 3,136 for
-Llama+Qwen; 579 attempted for Gemini). Of 3,437 analysed choice calls:
+Quantities are defined precisely, because an earlier draft quoted a
+"4,232 calls" total that reconciles to no defined quantity and has been withdrawn
+(D-36). All figures below are computed from the committed artefacts by
+`src/claims.py`.
+
+| quantity | Study 1 |
+|---|---|
+| committed **trial records** (rows in the raw JSONL) | **4,013** |
+| of which pilot / main / manipulation check | 116 / 3,717 / 180 |
+| **successful model responses** (`call_ok`) | 3,928 |
+| **failed calls** | 85 |
+| **API attempts** including retries | 4,533 |
+
+Of the 3,437 choice-turn records (excluding free-text `perform_task` turns):
 
 * **85 call failures (2.5%)** — all Gemini HTTP 429 after the free-tier daily cap
   of 500 requests was exhausted; zero failures on Llama and Qwen.
@@ -217,14 +239,46 @@ Matched subset (Methods A, B, C; 10 items):
 | `gemini-31-flash-lite` | **0.911** | **+0.868** | 0.089 | 0.303 | 9/10 | 0.803 |
 | `llama31-8b` | 0.690 | +0.308 | 0.310 | 0.330 | 6/10 | 0.785 |
 | `qwen25-7b` | 0.565 | +0.021 | 0.435 | 0.366 | 5/10 | 0.777 |
-| *simulated chance* | *0.50 (95th pct **0.833**)* | *0.25 (95th pct **0.58**)* | — | — | — | *0.77–0.78* |
 
-**Only Gemini's convergence exceeds the chance ceiling.** Llama's direction
-agreement (0.690) sits below the 95th percentile of chance (0.833) and its mean
-ρ (+0.308) below the chance 95th percentile (0.580). Qwen is at chance
-throughout. We therefore do **not** claim that Llama's methods converged.
+**The null.** Convergence statistics have a non-trivial value even with no
+cross-method alignment, so each observation is compared against a **matched
+permutation null** (10,000 permutations). Each method column keeps its observed
+values — distribution, ties, saturation, dead-zone behaviour and all — while item
+labels are permuted independently within each column. This destroys exactly one
+thing, the alignment of items across methods, and nothing else. The null and the
+observation are computed by the *same* estimator function, averaged over all
+k-choose-2 method pairs.
 
-Note CMCS ≈ 0.78–0.80 for *all three models* against a chance level of 0.77–0.78
+An earlier parametric baseline (simulating every method as fair coin flips) was
+found during final audit to be mis-specified in three ways and has been withdrawn
+(D-32). Its numbers do not appear in this report.
+
+**Matched subset (3 methods × 10 items):**
+
+| model | statistic | observed | null mean | null 95th | empirical p |
+|---|---|---|---|---|---|
+| `gemini-31-flash-lite` | direction agreement | 0.911 | 0.568 | 0.732 | **0.0019** |
+| `gemini-31-flash-lite` | mean ρ | 0.868 | −0.002 | 0.346 | **0.0001** |
+| `llama31-8b` | direction agreement | 0.690 | 0.556 | 0.746 | 0.1231 |
+| `llama31-8b` | mean ρ | 0.308 | 0.002 | 0.342 | 0.0693 |
+| `qwen25-7b` | direction agreement | 0.565 | 0.501 | 0.694 | 0.2736 |
+| `qwen25-7b` | mean ρ | 0.021 | 0.001 | 0.345 | 0.4325 |
+
+On the matched basis, **only Gemini exceeds its permutation null**, and it does so
+decisively on both statistics. Llama does not (p = 0.123, 0.069); Qwen does not.
+
+**A qualification we must state.** On each model's *fuller* basis — Llama and Qwen
+have four methods and 12 items, Gemini only three and 11 — Llama's convergence
+*does* exceed its own null nominally (direction agreement 0.712, p = 0.0140; mean
+ρ 0.255, p = 0.0328). With six model × statistic tests, a Bonferroni threshold is
+0.0083, which Llama's values do not meet and Gemini's (0.0011, 0.0001) do. We
+therefore report Llama as **suggestive but not established**: significant on one
+basis at nominal α, not on the matched basis, and not after correction for
+multiplicity. The earlier flat null claim for Llama was an artefact of the withdrawn
+baseline (D-32) and is not repeated.
+
+Note CMCS ≈ 0.78–0.80 for *all three models*, and its permutation null sits in
+the same range
 — it is uninformative here, exactly the failure mode anticipated when defining
 it: it rewards agreement near indifference. This is why five standard metrics
 were reported alongside it.
@@ -452,7 +506,7 @@ dispositions our protocol cannot surface.
 
 ### 6.3 Exploratory: weak content, strong position
 
-Pre-registered as exploratory, not confirmatory (D-27). Spearman correlation
+Pre-specified as exploratory, not confirmatory (D-27). Spearman correlation
 between |content signal| and |position effect| across items:
 
 | | rho | p | n |
@@ -466,7 +520,47 @@ But the association is carried almost entirely by the 120B arm and is absent in
 the 20B arm, and the pooled figure mixes two models with very different
 distributions. We report it as a hypothesis for future work, not a finding.
 
-### 6.4 Relationship to Study 1
+### 6.4 Study 2b — provider-pinned replication
+
+**The control Study 2 claimed was incomplete.** OpenRouter's
+`allow_fallbacks: false` pins the served *model*, not the upstream inference
+provider. OpenRouter lists 12 upstream endpoints for `gpt-oss-20b` and 20 for
+`gpt-oss-120b`, and the original Study 2 run neither pinned nor recorded which
+one served each call. The serving stack was therefore **not** held fixed, contrary
+to what Study 2's write-up implied (D-33).
+
+We repaired this rather than only caveating it. Study 2b re-runs the identical
+design with both arms pinned to a single upstream provider (**Groq**, which serves
+both models) via `provider.only`, recording the served provider on every record.
+All 560 calls report `served_provider = Groq`; the pin is asserted before any
+statistic is computed. The original dataset is preserved unchanged.
+
+| | 20B unpinned | 20B Groq | 120B unpinned | 120B Groq |
+|---|---|---|---|---|
+| mean \|position effect\| | 0.442 | **0.608** | 0.925 | **0.942** |
+| mean \|content signal\| | 0.275 | 0.208 | 0.058 | 0.058 |
+| control accuracy | 0.975 | 1.000 | 1.000 | 1.000 |
+
+| hypothesis | unpinned Δ | Groq-pinned Δ | verdict |
+|---|---|---|---|
+| H1 \|position\| (20B − 120B) | −0.483 [−0.650, −0.317] | **−0.333** [−0.492, −0.192] | rejected in both |
+| H2 \|content\| (120B − 20B) | −0.217 [−0.325, −0.117] | **−0.150** [−0.217, −0.092] | rejected in both |
+
+**The finding replicates under provider control.** Both hypotheses remain rejected
+in the same direction, with intervals excluding zero.
+
+Two things are worth noting. First, the effect is *smaller* under pinning
+(Δ|position| −0.483 → −0.333), mostly because 20B's position effect rose from
+0.442 to 0.608 on Groq — so upstream provider identity does measurably affect
+these numbers, which is precisely why the original uncontrolled run should not
+have been described as provider-controlled. Second, the exploratory
+content-vs-position association strengthens under pinning (pooled ρ = −0.869,
+and −0.632 for 20B where it was null before), but it remains exploratory.
+
+Study 2b is the version we treat as the controlled result. Study 2 is retained as
+the original, uncontrolled run.
+
+### 6.5 Relationship to Study 1
 
 These are **separate experiments** and their numbers are not pooled. Study 1
 randomised order probabilistically across four methods; Study 2 counterbalanced
@@ -505,7 +599,7 @@ four of our methods present two labelled options to the same model through text;
 a position bias affects all of them, and would produce agreement that looks like
 convergent validity.
 
-**Position diagnostics are cheap and decisive.** Reporting `P(X | X first)`
+**Position diagnostics are cheap and informative.** Reporting `P(X | X first)`
 against `P(X | X second)` costs nothing beyond counterbalancing the order, and it
 is what separates a measured preference from an artefact. Without it, a standard
 pairwise elicitation produced for Qwen a confident-looking twelve-item preference
@@ -534,9 +628,10 @@ positional susceptibility **higher** in the larger model, which is inconsistent
 with the capability account as we stated it. Whatever governs positional
 susceptibility, it is not simply "bigger models compare better."
 
-**Model dependence is the dominant effect.** Across five models and two
-providers, measurement behaviour varied far more between models than between
-methods. Any claim of the form "LLMs prefer X" that rests on one model and one
+**Large model-to-model differences were observed.** Across five models,
+measurement behaviour varied substantially between models. We have not run a
+formal variance decomposition, so we do not claim model identity is *the*
+dominant factor — only that the between-model spread was large. Any claim of the form "LLMs prefer X" that rests on one model and one
 procedure is, on this evidence, unsafe.
 
 **Self-report was the weakest method.** On both open-weight models in Study 1,
@@ -564,9 +659,11 @@ We measured apparent preferences over 12 welfare-neutral task pairs with four
 elicitation methods across three model families, then ran a controlled
 within-family follow-up on two more.
 
-Cross-method convergence was strong in one model and indistinguishable from
-chance in two others, and the difference tracked how much order-invariant signal
-each model produced rather than which method was used. In one model the standard
+Against a matched permutation null, cross-method convergence exceeded chance in
+one model (Gemini, p <= 0.002), was suggestive but not established in a second
+(Llama), and was not detectable in the third (Qwen). The differences tracked how
+much order-invariant signal each model produced rather than which method was
+used. In one model the standard
 pairwise procedure measured nothing but display order, while still passing
 validity controls. A follow-up with pre-specified hypotheses, holding family and provider fixed,
 found the larger model *more* position-dominated, rejecting the capability

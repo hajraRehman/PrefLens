@@ -127,8 +127,8 @@ def position_bias_report(df: pd.DataFrame) -> pd.DataFrame:
 def signal_vs_position_table(df: pd.DataFrame, items: dict) -> pd.DataFrame:
     """Per (model, method, item) split of behaviour into position vs content.
 
-    This is the diagnostic that tells a genuine method disagreement apart from a
-    measure that carries no preference information at all. Sanity controls are
+    This is the diagnostic that tells cross-method disagreement apart from a
+    measure carrying no detectable order-invariant content signal. Sanity controls are
     excluded; only the neutral framing is used, so it matches the convergence
     analysis exactly.
     """
@@ -344,6 +344,118 @@ def convergence_table(mat: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def convergence_stats(matrix) -> dict:
+    """The headline aggregate statistics, from a bare items x methods array.
+
+    This is the single estimator used for BOTH the observed value and every
+    permutation draw, so the null cannot silently differ from the observation
+    (D-32). It averages over **all** k-choose-2 method pairs, matching
+    `convergence_table`, and uses the identical tie and missing-value handling
+    because it calls the same metric functions.
+
+    No bootstrap here: this runs tens of thousands of times.
+    """
+    a = np.asarray(matrix, dtype=float)
+    n_items, n_methods = a.shape
+
+    # Precompute per-column direction codes once (they are reused by every pair).
+    dz = M.DEAD_ZONE
+    finite = np.isfinite(a)
+    dirs = np.where(~finite | (np.abs(a) <= dz), 0, np.sign(a)).astype(int)
+
+    das, rhos, flips, mads = [], [], [], []
+    for i in range(n_methods):
+        for j in range(i + 1, n_methods):
+            x, y = a[:, i], a[:, j]
+            di, dj = dirs[:, i], dirs[:, j]
+
+            both = (di != 0) & (dj != 0)
+            n_cmp = int(both.sum())
+            if n_cmp:
+                agree = int((di[both] == dj[both]).sum())
+                das.append(agree / n_cmp)
+                flips.append((n_cmp - agree) / n_cmp)
+            else:
+                das.append(np.nan)
+                flips.append(np.nan)
+
+            m = finite[:, i] & finite[:, j]
+            xs, ys = x[m], y[m]
+            if xs.size >= 3 and np.ptp(xs) > 0 and np.ptp(ys) > 0:
+                # Spearman == Pearson on average ranks; matches scipy's tie handling.
+                rx, ry = _avg_rank(xs), _avg_rank(ys)
+                rhos.append(float(np.corrcoef(rx, ry)[0, 1]))
+            else:
+                rhos.append(np.nan)
+            mads.append(float(np.mean(np.abs(xs - ys))) if xs.size else np.nan)
+
+    # CMCS per item, vectorised over rows.
+    with np.errstate(invalid="ignore"):
+        cnt = finite.sum(axis=1)
+        filled = np.where(finite, a, 0.0)
+        means = np.divide(filled.sum(axis=1), cnt, out=np.full(n_items, np.nan),
+                          where=cnt > 0)
+        disp = np.divide(np.abs(np.where(finite, a - means[:, None], 0.0)).sum(axis=1),
+                         cnt, out=np.full(n_items, np.nan), where=cnt > 0)
+        max_disp = np.where(cnt % 2 == 0, 1.0, 1.0 - 1.0 / np.maximum(cnt, 1) ** 2)
+        cm = np.where(cnt >= 2, 1.0 - disp / max_disp, np.nan)
+
+        return {
+            "mean_direction_agreement": float(np.nanmean(das)) if das else np.nan,
+            "mean_spearman_rho": float(np.nanmean(rhos)) if rhos else np.nan,
+            # Negated so larger = more convergence for every statistic, which is
+            # what the one-sided empirical p-value assumes.
+            "neg_mean_sign_flip_rate": -float(np.nanmean(flips)) if flips else np.nan,
+            "neg_mean_abs_disagreement": -float(np.nanmean(mads)) if mads else np.nan,
+            "mean_cmcs": float(np.nanmean(cm)) if np.any(np.isfinite(cm)) else np.nan,
+        }
+
+
+def _avg_rank(v: np.ndarray) -> np.ndarray:
+    """Average ranks, matching scipy.stats.rankdata('average') for ties."""
+    order = np.argsort(v, kind="mergesort")
+    ranks = np.empty(v.size, dtype=float)
+    ranks[order] = np.arange(1, v.size + 1, dtype=float)
+    sv = v[order]
+    i = 0
+    while i < sv.size:
+        j = i
+        while j + 1 < sv.size and sv[j + 1] == sv[i]:
+            j += 1
+        if j > i:
+            ranks[order[i:j + 1]] = (i + j + 2) / 2.0
+        i = j + 1
+    return ranks
+
+
+def convergence_stats_reference(matrix) -> dict:
+    """Slow reference implementation calling the metric functions directly.
+
+    `convergence_stats` is a vectorised rewrite for speed (it runs tens of
+    thousands of times inside the permutation null). A test asserts the two agree
+    to floating-point tolerance on real and random matrices, so the fast path
+    cannot silently drift from the estimator used everywhere else.
+    """
+    a = np.asarray(matrix, dtype=float)
+    n_methods = a.shape[1]
+    das, rhos, flips, mads = [], [], [], []
+    for i in range(n_methods):
+        for j in range(i + 1, n_methods):
+            x, y = a[:, i], a[:, j]
+            das.append(M.direction_agreement(x, y)["agreement"])
+            rhos.append(M.spearman(x, y)["rho"])
+            flips.append(M.sign_flip_rate(x, y))
+            mads.append(M.mean_absolute_disagreement(x, y)["mad"])
+    with np.errstate(invalid="ignore"):
+        return {
+            "mean_direction_agreement": float(np.nanmean(das)) if das else np.nan,
+            "mean_spearman_rho": float(np.nanmean(rhos)) if rhos else np.nan,
+            "neg_mean_sign_flip_rate": -float(np.nanmean(flips)) if flips else np.nan,
+            "neg_mean_abs_disagreement": -float(np.nanmean(mads)) if mads else np.nan,
+            "mean_cmcs": float(np.nanmean([M.cmcs(list(row)) for row in a])),
+        }
+
+
 def per_item_table(mat: pd.DataFrame) -> pd.DataFrame:
     rows = []
     for pid, row in mat.iterrows():
@@ -361,7 +473,8 @@ def per_item_table(mat: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def matched_subset(scores: pd.DataFrame, items: dict, models: list[str]) -> dict:
+def matched_subset(scores: pd.DataFrame, items: dict, models: list[str],
+                   n_perm: int = 10_000) -> dict:
     """Convergence recomputed on the methods and items common to every model.
 
     Cross-model comparison is otherwise invalid. Agreement statistics depend
@@ -401,6 +514,8 @@ def matched_subset(scores: pd.DataFrame, items: dict, models: list[str]) -> dict
         conv = convergence_table(sub)
         per_item = per_item_table(sub)
         out["per_model"][m] = {
+            "permutation_null": M.permutation_null(
+                sub.to_numpy(dtype=float), convergence_stats, n_perm=n_perm),
             "mean_direction_agreement": float(np.nanmean(conv["direction_agreement"])),
             "mean_spearman_rho": float(np.nanmean(conv["spearman_rho"])),
             "mean_abs_disagreement": float(np.nanmean(conv["mean_abs_disagreement"])),
@@ -460,7 +575,7 @@ def framing_sensitivity(scores: pd.DataFrame, items: dict, model: str) -> dict:
 # ---------------------------------------------------------------------------- driver
 
 
-def run(phase: str) -> dict:
+def run(phase: str, n_perm: int = 10_000) -> dict:
     exp_cfg = load_experiment_cfg()
     experiment_id = exp_cfg[phase]["experiment_id"]
     items = load_items()
@@ -525,6 +640,10 @@ def run(phase: str) -> dict:
         per_item.to_csv(tbl / f"{phase}_{model}_per_item.csv", index=False)
 
         n_reps = exp_cfg[phase]["repetitions"]
+        # Matched permutation null on this model's own observed matrix (D-32).
+        perm = M.permutation_null(mat.to_numpy(dtype=float), convergence_stats,
+                                  n_perm=n_perm)
+        # Deprecated parametric baseline, kept only for traceability.
         baseline = M.random_baseline(len(mat), max(len(mat.columns), 2), n_reps)
 
         degenerate = [m for m, v in sig.get(model, {}).items() if v.get("degenerate")]
@@ -555,12 +674,13 @@ def run(phase: str) -> dict:
                                    "preference information"
                                    if "pairwise" in degenerate else None),
             },
-            "random_baseline": baseline,
+            "permutation_null": perm,
+            "random_baseline_DEPRECATED": baseline,
             "framing": framing_sensitivity(scores, items, model),
         }
 
     # Apples-to-apples cross-model comparison on a shared basis (D-24).
-    summary["matched_subset"] = matched_subset(scores, items, summary["models"])
+    summary["matched_subset"] = matched_subset(scores, items, summary["models"], n_perm)
 
     # Cross-model replication (RQ5): do the two models rank the items alike?
     if len(summary["models"]) >= 2:
@@ -583,15 +703,22 @@ def run(phase: str) -> dict:
     for model, s in summary["per_model"].items():
         print(f"\n[{model}] mean direction agreement "
               f"{s['mean_direction_agreement']:.3f} "
-              f"(chance {s['random_baseline']['direction_agreement_mean']:.3f}) | "
               f"mean rho {s['mean_spearman_rho']:.3f} | "
               f"mean CMCS {s['cmcs']['point']:.3f} "
               f"[{s['cmcs']['lo']:.3f}, {s['cmcs']['hi']:.3f}]")
+        pn = s.get("permutation_null", {})
+        for stat, lab in (("mean_direction_agreement", "dir.agree"),
+                          ("mean_spearman_rho", "rho      ")):
+            r = pn.get(stat, {})
+            if r:
+                print(f"          PERM-NULL {lab} obs {r['observed']:+.3f} | "
+                      f"null mean {r['null_mean']:+.3f} p95 {r['null_p95']:+.3f} | "
+                      f"p = {r['p_empirical']:.4f}")
         for meth, v in sorted(s.get("signal_vs_position", {}).items()):
             flag = "  <-- DEGENERATE: pure position responding" if v["degenerate"] else ""
-            print(f"          {meth:<12} |content|={v['mean_abs_content']:.3f} "
-                  f"position={v['mean_position']:+.3f} "
-                  f"items with signal {v['n_items_with_content']}/{v['n_items']}{flag}")
+            print(f"          {meth:<12} |content| mean={v['mean_abs_content']:.3f} "
+                  f"median={v['median_abs_content']:.3f} max={v['max_abs_content']:.3f} "
+                  f"| position={v['mean_position']:+.3f}{flag}")
         if s["degenerate_methods"]:
             print(f"          !! convergence for {model} is NOT interpretable as method "
                   f"disagreement: {s['degenerate_methods']} carry no signal")
@@ -616,7 +743,10 @@ def run(phase: str) -> dict:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--phase", default="main")
-    run(ap.parse_args().phase)
+    ap.add_argument("--n-perm", type=int, default=10_000,
+                    help="permutations for the matched null")
+    a = ap.parse_args()
+    run(a.phase, a.n_perm)
 
 
 if __name__ == "__main__":

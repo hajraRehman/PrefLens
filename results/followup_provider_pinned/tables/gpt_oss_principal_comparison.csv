@@ -1,0 +1,3 @@
+model,key,mean_abs_position_effect,position_ci_lo,position_ci_hi,mean_abs_content_signal,content_ci_lo,content_ci_hi,sanity_control_accuracy
+openai/gpt-oss-20b,gpt-oss-20b,0.6083,0.4333,0.7583,0.2083,0.125,0.3,1.0
+openai/gpt-oss-120b,gpt-oss-120b,0.9417,0.8833,0.9917,0.0583,0.0083,0.1167,1.0

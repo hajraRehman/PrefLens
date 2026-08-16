@@ -192,17 +192,100 @@ def bootstrap_spearman(x, y, n_boot: int = 10_000, alpha: float = 0.05,
 # ------------------------------------------------------------------------ baselines
 
 
+def permutation_null(
+    mat, stat_fn, n_perm: int = 10_000, seed: int = 20260816
+) -> dict:
+    """Matched permutation null for cross-method convergence.
+
+    THE null for a convergence question. Each method column keeps its observed
+    values exactly — the same distribution, ties, saturation at +/-1, dead-zone
+    behaviour and per-method quirks. Only the *item labels* are permuted, and
+    independently within each column, which destroys precisely one thing:
+
+        the alignment of preference items across methods.
+
+    That is the hypothesis being tested. Everything else about the data is held
+    at its observed value, so no distributional assumption is imported.
+
+    This replaces an earlier parametric baseline that simulated every method as
+    repeated fair coin flips. That baseline was wrong three ways: it imposed a
+    binomial shape on methods that do not produce one, it compared only the first
+    two method columns while the observed statistic averages all k-choose-2
+    pairs, and it reported mean |rho| against an observed mean *signed* rho
+    (see D-32).
+
+    `stat_fn(matrix) -> dict[str, float]` must be the SAME function used on the
+    observed data, so the null and the observation are the same estimator.
+
+    Returns, for each statistic: observed value, null mean, 95th and 99th
+    percentiles, and a one-sided empirical p-value using the add-one estimator
+
+        p = (1 + #{null >= observed}) / (1 + n_perm)
+
+    which is the standard conservative form and can never return exactly zero.
+    """
+    import numpy as _np
+
+    arr = _np.asarray(mat, dtype=float)
+    n_items, n_methods = arr.shape
+    rng = _np.random.default_rng(seed)
+
+    observed = stat_fn(arr)
+    draws: dict[str, list[float]] = {k: [] for k in observed}
+
+    for _ in range(n_perm):
+        perm = _np.empty_like(arr)
+        for j in range(n_methods):
+            perm[:, j] = arr[rng.permutation(n_items), j]
+        s = stat_fn(perm)
+        for k, v in s.items():
+            draws[k].append(v)
+
+    out: dict[str, dict] = {}
+    for k, obs in observed.items():
+        v = _np.asarray([x for x in draws[k] if _np.isfinite(x)], dtype=float)
+        if v.size == 0 or not _np.isfinite(obs):
+            out[k] = {"observed": float(obs) if _np.isfinite(obs) else float("nan"),
+                      "null_mean": float("nan"), "null_p95": float("nan"),
+                      "null_p99": float("nan"), "p_empirical": float("nan"),
+                      "n_valid_perm": int(v.size)}
+            continue
+        out[k] = {
+            "observed": float(obs),
+            "null_mean": float(v.mean()),
+            "null_p95": float(_np.percentile(v, 95)),
+            "null_p99": float(_np.percentile(v, 99)),
+            # Larger = more convergence for every statistic passed here.
+            "p_empirical": float((1 + int((v >= obs).sum())) / (1 + v.size)),
+            "n_valid_perm": int(v.size),
+        }
+    out["_meta"] = {"n_perm": n_perm, "n_items": n_items, "n_methods": n_methods,
+                    "seed": seed}
+    return out
+
+
 def random_baseline(
     n_items: int, n_methods: int, n_reps_per_score: int = 10,
     n_sim: int = 5000, seed: int = 20260816
 ) -> dict:
-    """What convergence looks like when there is no preference at all.
+    """DEPRECATED parametric baseline — retained only for historical traceability.
 
-    Simulates a model choosing A or B with p=0.5 independently on every sample,
-    then pushes the simulated choices through the same 2*P(A)-1 normalisation.
-    This gives the chance level for direction agreement, |rho| and CMCS at the
-    sample sizes we actually used, which is the reference our observed numbers
-    must be compared against.
+    **Not used for any reported claim.** Superseded by `permutation_null` (D-32).
+
+    It simulates every method as repeated fair coin flips at `n_reps_per_score`,
+    which mis-specifies the null in three ways:
+
+      1. Only Method B actually produces a scaled binomial. Self-report is a
+         strength-weighted mean, the trade-off score is a mean over nine cost
+         rungs, and sequential occupancy is a multiple of 1/15.
+      2. It evaluates direction agreement and Spearman on the first two columns
+         only, whereas the observed statistic averages all k-choose-2 method
+         pairs.
+      3. It returns mean **|rho|** while the observed figure is a mean **signed**
+         rho, so the two were not the same quantity.
+
+    Kept in the tree so the earlier analysis can be reproduced and the correction
+    audited, not because it should be used.
     """
     rng = np.random.default_rng(seed)
     agrees, rhos, cm = [], [], []
@@ -280,7 +363,7 @@ def position_bias(records: list[dict]) -> dict:
     }
 
 
-def signal_share(content_effects, position_effects) -> dict:
+def signal_share(content_effects, position_effects, tol: float = 1e-9) -> dict:
     """How much of a measure's behaviour is preference rather than position?
 
     Randomising display order makes a score unbiased in expectation even under a
@@ -296,8 +379,13 @@ def signal_share(content_effects, position_effects) -> dict:
         mean_position      average first-position advantage, in [-1, 1]
         signal_ratio       mean_abs_content / |mean_position|; higher = more
                            preference-driven. Undefined when position is ~0.
-        degenerate         True if the measure is statistically indistinguishable
-                           from pure position responding (no item shows content).
+        degenerate         True when EVERY item's estimated order-invariant content
+                           effect is numerically zero within `tol`. This is a
+                           numerical condition, NOT a hypothesis test: no test is
+                           performed and no p-value is produced. With 10 trials
+                           per cell, exact zeros mean the two display orders
+                           produced exactly offsetting choice rates on every item
+                           (D-34).
     """
     c = np.abs(np.asarray([x for x in content_effects if x is not None and np.isfinite(x)]))
     p = np.asarray([x for x in position_effects if x is not None and np.isfinite(x)])
@@ -310,8 +398,14 @@ def signal_share(content_effects, position_effects) -> dict:
         "mean_position": mean_pos,
         "signal_ratio": (float(np.mean(c) / abs(mean_pos))
                          if p.size and abs(mean_pos) > 1e-9 else np.nan),
-        # No item deviating from indifference once order is averaged out.
-        "degenerate": bool(np.all(c < 1e-9)),
+        # Numerical condition, not a statistical test (D-34).
+        "degenerate": bool(np.all(c < tol)),
+        "tolerance": tol,
         "n_items": int(c.size),
-        "n_items_with_content": int((c > 0.15).sum()),
+        # Continuous distribution instead of a count above an arbitrary cut.
+        # An earlier version reported `n_items_with_content = (|content| > 0.15)`;
+        # 0.15 had no derivation or pre-specification, so the categorical metric
+        # was removed from all reporting (D-35).
+        "median_abs_content": float(np.median(c)),
+        "max_abs_content": float(c.max()),
     }

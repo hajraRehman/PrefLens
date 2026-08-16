@@ -9,6 +9,123 @@
 
 ---
 
+## D-32 — The Study 1 chance baseline was mis-specified and has been replaced
+
+**During final audit** we found the parametric "random baseline" did not match the
+statistic it was being compared against. Three defects:
+
+1. It simulated **every** method as `2·Binomial(n, 0.5)/n − 1`. Only Method B
+   produces that shape; self-report is a strength-weighted mean, Method C is a
+   mean over nine cost rungs, Method D an occupancy in multiples of 1/15.
+2. It computed direction agreement and Spearman on **the first two columns only**,
+   while the observed statistic averages all k-choose-2 method pairs.
+3. It reported mean **|rho|** while the observed figure was a mean **signed** rho.
+
+Replaced by `metrics.permutation_null`: each method column keeps its observed
+values, and item labels are permuted independently within each column (10,000
+permutations). This preserves every distributional property and destroys only
+cross-method item alignment — the actual null for a convergence question. The
+same estimator (`analysis.convergence_stats`) computes both the observation and
+every permutation draw, so they cannot diverge. `convergence_stats` is a
+vectorised rewrite; a test asserts it matches a metric-function reference to
+1e-16 on random matrices including ties, saturation and missing values.
+
+**A headline claim changed.** Under the old baseline we wrote that Llama was
+"indistinguishable from chance" because 0.690 < 0.833 (the old 95th percentile).
+Under the matched null, Llama is p = 0.123 on the matched basis but **p = 0.014 /
+0.033 on its own fuller 4-method basis** — nominally significant, though it fails
+a Bonferroni threshold of 0.0083 for six tests. The report now states this
+explicitly instead of asserting a flat null result. Gemini's conclusion is
+unchanged and strengthens (p = 0.0019 / 0.0001).
+
+`random_baseline` is retained, clearly marked deprecated, so the earlier analysis
+remains reproducible and the correction auditable. It is used for no claim.
+
+---
+
+## D-33 — Study 2's provider control was incomplete; a pinned replication was run
+
+**During final audit** we found Study 2's implied "same provider" control did not
+hold. `allow_fallbacks: false` pins the served *model*; it does not pin the
+upstream inference provider. OpenRouter lists **12** upstream endpoints for
+`gpt-oss-20b` and **20** for `gpt-oss-120b`, and although our OpenRouter client
+captured `provider_name` in its metadata, the Study 2 runner **never wrote it to
+the record**. Upstream identity was therefore neither controlled nor recoverable.
+
+Rather than only weakening the wording, we ran **Study 2b**: the identical design
+with both arms pinned to one upstream provider (Groq, which serves both models)
+via `provider.only`, with the served provider written to every record and
+asserted during verification. 560/560 calls report `served_provider = Groq`.
+
+The original Study 2 dataset is preserved untouched at
+`data/raw/followup_gpt_oss/`; Study 2b writes to
+`data/raw/followup_gpt_oss_provider_pinned/`.
+
+**Both hypotheses remain rejected under provider control**, in the same direction:
+Δ|position| −0.333 [−0.492, −0.192], Δ|content| −0.150 [−0.217, −0.092].
+
+The effect is smaller than unpinned (−0.483 → −0.333), driven mainly by 20B's
+position effect rising from 0.442 to 0.608 on Groq. Upstream provider therefore
+*does* measurably affect these numbers, which vindicates treating the original run
+as uncontrolled. Study 2b is the controlled result; Study 2 is retained as the
+original.
+
+---
+
+## D-34 — "Degenerate" is a numerical condition, not a statistical test
+
+The docstring described a degenerate measure as "statistically indistinguishable
+from pure position responding", but the implementation tests whether every item's
+content effect is numerically zero. No hypothesis test is performed and no p-value
+is produced. The documentation now says exactly that, with the tolerance exposed
+as a parameter.
+
+---
+
+## D-35 — Arbitrary 0.15 threshold removed; dead-zone sensitivity reported
+
+**Threshold removed.** `signal_share` reported `n_items_with_content` as the count
+of items with |content| > 0.15. The 0.15 had no derivation and was not
+pre-specified. It is removed from all reporting and replaced by continuous
+statistics (mean, median, max |content|).
+
+**Dead-zone sensitivity.** Direction agreement depends on a dead zone below which
+a score counts as directionless; 0.05 was a judgement call. `src/robustness.py`
+recomputes the matched comparison at 0.00 / 0.05 / 0.10 / 0.20:
+
+| dead zone | Gemini | Llama | Qwen |
+|---|---|---|---|
+| 0.00 | 0.843 | 0.710 | 0.500 |
+| 0.05 | 0.911 | 0.690 | 0.565 |
+| 0.10 | 0.958 | 0.600 | 0.600 |
+| 0.20 | 1.000 | 0.667 | 0.278 |
+
+Gemini is highest at every threshold. Llama ≥ Qwen at every threshold, but they
+are **exactly tied at 0.600 when the dead zone is 0.10**, so the Llama-vs-Qwen
+ordering is not strict everywhere and we do not claim it is. The headline
+conclusion (Gemini highest; Qwen never above its null) is robust to the choice.
+
+---
+
+## D-36 — Study 1 record totals reconciled; "4,232 calls" withdrawn
+
+**During final audit** the reported total of "4,232 calls" was found to reconcile
+to no defined quantity. Recomputed from the committed artefacts:
+
+| quantity | Study 1 | Study 2 | Study 2b |
+|---|---|---|---|
+| committed trial records | 4,013 | 592 | 576 |
+| successful model responses | 3,928 | 592 | 576 |
+| failed calls | 85 | 0 | 0 |
+| API attempts incl. retries | 4,533 | 592 | 576 |
+
+Study 1 records break down as pilot 116 + main 3,717 + manipulation check 180.
+The terms are now defined separately rather than all being called "calls", derived
+in `src/claims.py`, and asserted by tests. The abstract now says "4,013 trial
+records".
+
+---
+
 ## D-31 — Study 2 deviations, failures, and the outcome of the pre-specified test
 
 Recorded after the run. The hypotheses in D-27 are left exactly as written.

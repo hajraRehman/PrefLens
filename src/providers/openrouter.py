@@ -32,14 +32,22 @@ class OpenRouterProvider(Provider):
         if not self._key:
             raise ProviderError("OPENROUTER_API_KEY is not set", retryable=False)
 
+        # `allow_fallbacks: False` pins the served MODEL, but OpenRouter still
+        # load-balances across many upstream inference providers for that model
+        # (gpt-oss-20b had 12 endpoints, gpt-oss-120b 20). To hold the serving
+        # stack fixed, the upstream provider must be named explicitly via
+        # `provider.only` (D-33).
+        provider_routing: dict = {"allow_fallbacks": False}
+        if model.upstream_provider:
+            provider_routing["only"] = [model.upstream_provider]
+
         payload: dict = {
             "model": model.model_id,
             "messages": messages,
             "temperature": sampling.temperature,
             "top_p": sampling.top_p,
             "max_tokens": sampling.max_tokens,
-            # Pin the served model: no silent substitution between calls.
-            "provider": {"allow_fallbacks": False},
+            "provider": provider_routing,
         }
         if sampling.seed is not None:
             payload["seed"] = sampling.seed

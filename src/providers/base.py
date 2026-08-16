@@ -50,6 +50,10 @@ class ModelConfig:
     supports_json_schema: bool = False
     notes: str = ""
     rate_limit_rpm: float = 0.0   # 0 = unthrottled
+    upstream_provider: str | None = None
+    """OpenRouter upstream inference provider to pin via `provider.only`.
+    None leaves routing to OpenRouter, which load-balances across many
+    upstream providers and leaves the serving stack uncontrolled (D-33)."""
 
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> "ModelConfig":
@@ -61,6 +65,7 @@ class ModelConfig:
             supports_json_schema=bool(d.get("supports_json_schema", False)),
             notes=d.get("notes", ""),
             rate_limit_rpm=float(d.get("rate_limit_rpm", 0) or 0),
+            upstream_provider=d.get("upstream_provider") or None,
         )
 
 

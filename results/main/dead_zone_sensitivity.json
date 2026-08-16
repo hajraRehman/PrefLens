@@ -1,0 +1,81 @@
+{
+  "dead_zones": [
+    0.0,
+    0.05,
+    0.1,
+    0.2
+  ],
+  "basis": {
+    "methods": [
+      "self_report",
+      "pairwise",
+      "tradeoff"
+    ],
+    "n_items": 10,
+    "items": [
+      "p01",
+      "p02",
+      "p03",
+      "p04",
+      "p05",
+      "p06",
+      "p07",
+      "p08",
+      "p09",
+      "p10"
+    ]
+  },
+  "direction_agreement": {
+    "gemini-31-flash-lite": {
+      "0.0": 0.843,
+      "0.05": 0.911,
+      "0.1": 0.958,
+      "0.2": 1.0
+    },
+    "llama31-8b": {
+      "0.0": 0.71,
+      "0.05": 0.69,
+      "0.1": 0.6,
+      "0.2": 0.667
+    },
+    "qwen25-7b": {
+      "0.0": 0.5,
+      "0.05": 0.565,
+      "0.1": 0.6,
+      "0.2": 0.278
+    }
+  },
+  "model_ordering_per_dead_zone": {
+    "0.0": [
+      "gemini-31-flash-lite",
+      "llama31-8b",
+      "qwen25-7b"
+    ],
+    "0.05": [
+      "gemini-31-flash-lite",
+      "llama31-8b",
+      "qwen25-7b"
+    ],
+    "0.1": [
+      "gemini-31-flash-lite",
+      "llama31-8b",
+      "qwen25-7b"
+    ],
+    "0.2": [
+      "gemini-31-flash-lite",
+      "llama31-8b",
+      "qwen25-7b"
+    ]
+  },
+  "ordering_stable_ignoring_ties": true,
+  "ties_at_dead_zone": {
+    "0.1": [
+      [
+        0.6,
+        0.6
+      ]
+    ]
+  },
+  "gemini_highest_at_every_dead_zone": true,
+  "default_dead_zone": 0.05
+}

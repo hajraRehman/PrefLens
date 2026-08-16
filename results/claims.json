@@ -172,5 +172,134 @@
       "DECISIONS.md"
     ],
     "note": ""
+  },
+  "s1_trial_records": {
+    "value": 4013,
+    "text": "4,013",
+    "documents": [
+      "report/report.md"
+    ],
+    "note": "rows in Study 1 raw JSONL; NOT 'calls'"
+  },
+  "s1_successful_responses": {
+    "value": 3928,
+    "text": "3,928",
+    "documents": [
+      "report/report.md"
+    ],
+    "note": ""
+  },
+  "s1_api_attempts": {
+    "value": 4533,
+    "text": "4,533",
+    "documents": [
+      "report/report.md"
+    ],
+    "note": ""
+  },
+  "s2b_trial_records": {
+    "value": 560,
+    "text": "560",
+    "documents": [
+      "report/report.md"
+    ],
+    "note": ""
+  },
+  "s1_gemini_perm_p_dir": {
+    "value": 0.0019,
+    "text": "0.0019",
+    "documents": [
+      "report/report.md"
+    ],
+    "note": "matched-subset permutation p-value"
+  },
+  "s1_gemini_perm_p_rho": {
+    "value": 0.0001,
+    "text": "0.0001",
+    "documents": [
+      "report/report.md"
+    ],
+    "note": "matched-subset permutation p-value"
+  },
+  "s1_llama_perm_p_dir": {
+    "value": 0.1231,
+    "text": "0.1231",
+    "documents": [
+      "report/report.md"
+    ],
+    "note": "matched-subset permutation p-value"
+  },
+  "s1_llama_perm_p_rho": {
+    "value": 0.0693,
+    "text": "0.0693",
+    "documents": [
+      "report/report.md"
+    ],
+    "note": "matched-subset permutation p-value"
+  },
+  "s1_qwen_perm_p_dir": {
+    "value": 0.2736,
+    "text": "0.2736",
+    "documents": [
+      "report/report.md"
+    ],
+    "note": "matched-subset permutation p-value"
+  },
+  "s1_qwen_perm_p_rho": {
+    "value": 0.4325,
+    "text": "0.4325",
+    "documents": [
+      "report/report.md"
+    ],
+    "note": "matched-subset permutation p-value"
+  },
+  "s2b_20b_mean_abs_position": {
+    "value": 0.608,
+    "text": "0.608",
+    "documents": [
+      "report/report.md"
+    ],
+    "note": ""
+  },
+  "s2b_120b_mean_abs_position": {
+    "value": 0.942,
+    "text": "0.942",
+    "documents": [
+      "report/report.md"
+    ],
+    "note": ""
+  },
+  "s2b_h1_delta": {
+    "value": -0.333,
+    "text": "0.333",
+    "documents": [
+      "report/report.md"
+    ],
+    "note": ""
+  },
+  "s2b_h2_delta": {
+    "value": -0.15,
+    "text": "0.150",
+    "documents": [
+      "report/report.md"
+    ],
+    "note": ""
+  },
+  "total_models": {
+    "value": 5,
+    "text": "5",
+    "documents": [],
+    "note": "3 in S1 + 2 in S2"
+  },
+  "total_model_families": {
+    "value": 4,
+    "text": "4",
+    "documents": [],
+    "note": [
+      "gemini",
+      "gpt-oss",
+      "llama",
+      "qwen"
+    ]
   }
 }

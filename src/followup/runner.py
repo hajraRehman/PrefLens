@@ -30,14 +30,21 @@ from .design import build_trials, budget, displayed_to_semantic, verify_counterb
 
 ROOT = Path(__file__).resolve().parents[2]
 CONFIGS = ROOT / "configs"
-STUDY2_RAW = ROOT / "data" / "raw" / "followup_gpt_oss"
+DEFAULT_CONFIG = CONFIGS / "followup.yaml"
+
+
+def raw_dir(study_id: str) -> Path:
+    """Each Study 2 variant gets its own directory, derived from study_id, so a
+    provider-pinned rerun can never overwrite the original dataset (D-33)."""
+    assert study_id not in STUDY1_DIRS, study_id
+    return ROOT / "data" / "raw" / study_id
 
 # Guard against ever writing into Study 1's directories.
 STUDY1_DIRS = {"main", "pilot", "manipulation_check"}
 
 
-def load_cfg() -> tuple[dict, list[PreferenceItem], list[PreferenceItem]]:
-    cfg = yaml.safe_load((CONFIGS / "followup.yaml").read_text(encoding="utf-8"))
+def load_cfg(config: Path | None = None) -> tuple[dict, list[PreferenceItem], list[PreferenceItem]]:
+    cfg = yaml.safe_load((config or DEFAULT_CONFIG).read_text(encoding="utf-8"))
     prefs = yaml.safe_load((CONFIGS / "preferences.yaml").read_text(encoding="utf-8"))
     items = [PreferenceItem.from_dict(d) for d in prefs["items"]]
     analysis = [i for i in items if not i.sanity_control]
@@ -46,7 +53,7 @@ def load_cfg() -> tuple[dict, list[PreferenceItem], list[PreferenceItem]]:
 
 
 def plan(cfg: dict, phase: str) -> list:
-    analysis_items, controls = load_cfg()[1], load_cfg()[2]
+    _, analysis_items, controls = load_cfg()
     reps = cfg["design"]["repetitions_per_position"]
     ids = cfg.get("preference_ids")
     if phase == "pilot":
@@ -105,8 +112,9 @@ def completed_ids(path: Path) -> set[str]:
     return done
 
 
-def run(phase: str, assume_yes: bool, dry_run: bool) -> None:
-    cfg, _, _ = load_cfg()
+def run(phase: str, assume_yes: bool, dry_run: bool,
+        config: Path | None = None) -> None:
+    cfg, _, _ = load_cfg(config)
     trials = plan(cfg, phase)
     model_map = {m["key"]: m for m in cfg["models"]}
 
@@ -116,6 +124,9 @@ def run(phase: str, assume_yes: bool, dry_run: bool) -> None:
     print("=" * 68)
     print(f"STUDY 2 — position-bias follow-up | phase={phase}")
     print(f"study_id={cfg['study_id']}  models={list(model_map)}")
+    pins = {m["key"]: m.get("upstream_provider") for m in cfg["models"]}
+    print(f"UPSTREAM PROVIDER PIN: {pins}"
+          + ("" if all(pins.values()) else "   <-- NOT PINNED: serving stack uncontrolled"))
     print("-" * 68)
     print(f"COUNTERBALANCE: {'EXACT (verified)' if cb['balanced'] else 'BROKEN'}"
           f"  cells={cb['n_cells']}")
@@ -136,7 +147,8 @@ def run(phase: str, assume_yes: bool, dry_run: bool) -> None:
     if not avail.get("openrouter"):
         raise SystemExit("openrouter unavailable — set OPENROUTER_API_KEY in .env")
 
-    raw_path = STUDY2_RAW / f"{phase}_raw_observations.jsonl"
+    out_dir = raw_dir(cfg["study_id"])
+    raw_path = out_dir / f"{phase}_raw_observations.jsonl"
     already = completed_ids(raw_path) if cfg["runner"]["checkpoint"] else set()
     todo = [t for t in trials if t.trial_id not in already]
     if already:
@@ -173,6 +185,10 @@ def run(phase: str, assume_yes: bool, dry_run: bool) -> None:
                 "model_id": mc.model_id,
                 "model_family": mc.family,
                 "served_model": res.meta.get("served_model"),
+                # Upstream inference provider actually used, as reported by
+                # OpenRouter. Recorded so the serving stack is auditable (D-33).
+                "served_provider": res.meta.get("provider_name"),
+                "requested_upstream_provider": mc.upstream_provider,
                 "raw_response": res.text,
                 "parsed_display_choice": disp,
                 "parsed_semantic_choice": displayed_to_semantic(disp, t.semantic_x_position),
@@ -224,7 +240,7 @@ def run(phase: str, assume_yes: bool, dry_run: bool) -> None:
         "config": cfg, "budget": bud, "counterbalance": cb, "counters": counters,
         "resumed_skipped": len(already),
     }
-    (STUDY2_RAW / f"{phase}_manifest.json").write_text(
+    (out_dir / f"{phase}_manifest.json").write_text(
         json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8")
 
     print("-" * 68)
@@ -238,8 +254,10 @@ def main() -> None:
     ap.add_argument("--phase", default="pilot", choices=["pilot", "main"])
     ap.add_argument("--yes", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--config", default=None,
+                    help="path to a followup config (default configs/followup.yaml)")
     a = ap.parse_args()
-    run(a.phase, a.yes, a.dry_run)
+    run(a.phase, a.yes, a.dry_run, Path(a.config) if a.config else None)
 
 
 if __name__ == "__main__":
