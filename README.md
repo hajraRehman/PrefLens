@@ -21,6 +21,31 @@ Secondary questions:
 4. How sensitive is cross-method convergence to superficial framing changes?
 5. Does the pattern replicate across two model families?
 
+## 1b. Headline result
+
+On a matched basis (3 methods × 11 items common to all three models):
+
+| model | direction agreement | mean Spearman ρ | mean \|content\| signal |
+|---|---|---|---|
+| `gemini-3.1-flash-lite` | **0.921** | **+0.880** | 0.325 |
+| `llama-3.1-8b-instruct` | 0.708 | +0.290 | 0.185 |
+| `qwen-2.5-7b-instruct` | 0.536 | −0.013 | ~0.000 |
+| *simulated chance* | *0.50 (95th pct 0.833)* | *0.25 (95th pct 0.58)* | — |
+
+**Only Gemini's convergence exceeds the chance ceiling.** The other two are
+indistinguishable from chance.
+
+The explanation is not that methods measure different things. It is that on
+Qwen there was **no preference signal to agree about**: its pairwise measure
+reproduced the random display-order draw *exactly* on all 12 items — a
+confident-looking preference vector that was entirely position artefact, while
+still passing coherence checks on degenerate control items.
+
+Practical upshot: **report `P(A | A shown first)` vs `P(A | A shown second)`, or
+you cannot tell a measured preference from an unmeasured one.**
+
+Full write-up: [`report/report.md`](report/report.md).
+
 ## 2. Why it matters
 
 Work on apparent LLM preferences usually operationalises "preference" one way —
