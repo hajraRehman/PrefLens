@@ -366,6 +366,46 @@ This is stated in the report rather than left for a reader to infer.
 
 ---
 
+## D-25 — Minimum-coverage guard on scored cells, and no withdrawn statistic in a figure
+
+Two defects found while auditing the figures against the data.
+
+### Partially observed cells were scored as if complete
+
+The Gemini quota (D-24) truncated the run mid-queue. One cell — `p11` trade-off —
+received **6 of 27 planned calls, covering 3 of the 9 cost rungs** — yet was
+scored `+1.00` and weighted identically to cells with all 27 observations. It
+happened to show perfect cross-method agreement, inflating Gemini's convergence.
+
+A trade-off score built from 3 rungs is a *different estimator* from one built
+from 9; the method averages P(A) across the ladder, so a missing rung changes
+what is being averaged. `build_scores` now applies a coverage requirement — every
+cost rung present; ≥80% of planned repetitions or episodes otherwise — and sets
+under-covered cells to missing. The raw value is retained as `score_raw` for
+auditing but never analysed.
+
+Effect on results (matched subset 11 → 10 items): Gemini 0.921 → 0.911 direction
+agreement and ρ +0.880 → +0.868; Llama 0.708 → 0.690 and +0.290 → +0.308; Qwen
+0.536 → 0.565 and −0.013 → +0.021. **No conclusion changed**, which is itself
+worth recording: the thin cell was not driving the finding.
+
+### A figure displayed a statistic the report had withdrawn
+
+Figure 3 for Qwen rendered `rho = +0.592, CI [+0.033, +0.898], p = 0.043` in its
+title, with a fitted trend line — the exact H2 result withdrawn in §4.4 as an
+artefact of correlating the display-order draw against dispersion. A reader
+opening `results/figures/` would have taken away the invalid claim.
+
+`fig3` now takes a `degenerate` flag: the statistic is suppressed, the trend line
+is not drawn (it would imply a relationship exists), and the panel is stamped
+INVALID with the reason. The figure is still produced, because deleting it would
+hide that the analysis was attempted.
+
+**General rule adopted:** a figure must never display a number the report
+withdraws. Figures are read independently of the text and must survive that.
+
+---
+
 ## D-24 — Gemini arm shipped partial; cross-model claims restricted to a matched subset
 
 The Gemini free tier turned out to cap at **500 requests/day**, not the ~1,500

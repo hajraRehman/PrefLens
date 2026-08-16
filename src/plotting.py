@@ -103,17 +103,28 @@ def fig2_corr(mat, model: str, phase: str) -> Path:
     return p
 
 
-def fig3_strength_vs_disagreement(item_tbl, stats_d: dict, model: str, phase: str) -> Path:
+def fig3_strength_vs_disagreement(item_tbl, stats_d: dict, model: str, phase: str,
+                                  degenerate: bool = False) -> Path:
+    """H2: |pairwise strength| vs cross-method disagreement.
+
+    When the pairwise measure is degenerate (pure position responding) the x-axis
+    is the random display-order draw, so the statistic is meaningless. The figure
+    is still produced for transparency, but the statistic is suppressed from the
+    title and the panel is stamped INVALID — a figure must never display a number
+    the report withdraws.
+    """
     x = item_tbl["abs_pairwise_strength"].to_numpy(dtype=float)
     y = item_tbl["dispersion"].to_numpy(dtype=float)
     m = np.isfinite(x) & np.isfinite(y)
 
     fig, ax = plt.subplots(figsize=(5.2, 4.0))
-    ax.scatter(x[m], y[m], s=42, color="#2b6cb0", edgecolor="white", zorder=3)
+    colour = "#a0aec0" if degenerate else "#2b6cb0"
+    ax.scatter(x[m], y[m], s=42, color=colour, edgecolor="white", zorder=3)
     for xi, yi, pid in zip(x[m], y[m], item_tbl["preference_id"].to_numpy()[m]):
         ax.annotate(pid, (xi, yi), textcoords="offset points", xytext=(4, 4), fontsize=6.5,
                     color="0.35")
-    if m.sum() >= 3 and len(np.unique(x[m])) > 1:
+    # No trend line on a degenerate x-axis: it would imply a relationship exists.
+    if not degenerate and m.sum() >= 3 and len(np.unique(x[m])) > 1:
         b, a = np.polyfit(x[m], y[m], 1)
         xs = np.linspace(x[m].min(), x[m].max(), 50)
         ax.plot(xs, a + b * xs, color="#c05621", lw=1.4, ls="--", zorder=2,
@@ -122,13 +133,26 @@ def fig3_strength_vs_disagreement(item_tbl, stats_d: dict, model: str, phase: st
 
     ax.set_xlabel("|pairwise preference strength|  (Method B, 0 = indifferent)")
     ax.set_ylabel("cross-method disagreement\n(mean abs. deviation of method scores)")
-    rho, lo, hi = stats_d["spearman_rho"], stats_d["ci_lo"], stats_d["ci_hi"]
-    ax.set_title(
-        "Fig 3. Do stronger pairwise preferences agree better across methods?\n"
-        f"Spearman rho = {rho:+.3f}  95% CI [{lo:+.3f}, {hi:+.3f}]  "
-        f"p = {stats_d['p_value']:.3f}  n = {stats_d['n_items']}",
-        fontsize=9,
-    )
+
+    if degenerate:
+        ax.set_title(
+            "Fig 3. Do stronger pairwise preferences agree better across methods?\n"
+            "STATISTIC WITHDRAWN — the pairwise measure for this model is pure\n"
+            "position artefact, so the x-axis carries no preference information",
+            fontsize=8.5, color="#9b2c2c",
+        )
+        ax.text(0.5, 0.5, "INVALID", transform=ax.transAxes, fontsize=44,
+                color="#9b2c2c", alpha=0.16, ha="center", va="center",
+                rotation=22, zorder=1, fontweight="bold")
+    else:
+        rho, lo, hi = stats_d["spearman_rho"], stats_d["ci_lo"], stats_d["ci_hi"]
+        ax.set_title(
+            "Fig 3. Do stronger pairwise preferences agree better across methods?\n"
+            f"Spearman rho = {rho:+.3f}  95% CI [{lo:+.3f}, {hi:+.3f}]  "
+            f"p = {stats_d['p_value']:.3f}  n = {stats_d['n_items']}\n"
+            "positive rho = the OPPOSITE of the hypothesis",
+            fontsize=8.5,
+        )
     _stamp(fig, model, phase, int(m.sum()))
     p = FIG / f"fig3_strength_vs_disagreement_{phase}_{model}.png"
     fig.savefig(p)
@@ -235,7 +259,8 @@ def run(phase: str) -> list[Path]:
     df = A.load_raw(experiment_id)
     scores = A.add_sequential_scores(
         A.build_scores(df, exp_cfg), experiment_id, df,
-        exp_cfg["methods"]["sequential"]["stages"])
+        exp_cfg["methods"]["sequential"]["stages"],
+        exp_cfg["methods"]["sequential"]["repetitions"])
 
     summary_path = ROOT / "results" / phase / "summary.json"
     summary = json.loads(summary_path.read_text(encoding="utf-8")) if summary_path.exists() else None
@@ -249,8 +274,10 @@ def run(phase: str) -> list[Path]:
         made.append(fig1_heatmap(mat, model, phase))
         if len(mat.columns) >= 2:
             made.append(fig2_corr(mat, model, phase))
+        degen = bool((summary or {}).get("per_model", {})
+                     .get(model, {}).get("degenerate_methods"))
         made.append(fig3_strength_vs_disagreement(
-            per_item, A.strength_vs_stability(per_item), model, phase))
+            per_item, A.strength_vs_stability(per_item), model, phase, degenerate=degen))
         fr = (summary or {}).get("per_model", {}).get(model, {}).get("framing") \
             or A.framing_sensitivity(scores, items, model)
         f4 = fig4_framing(fr, model, phase)

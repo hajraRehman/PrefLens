@@ -14,9 +14,9 @@ main available evidence. We implemented four independent elicitation methods —
 direct self-report, repeated pairwise choice, a cost trade-off, and sequential
 task selection — over 12 welfare-neutral task pairs, on three model families
 (4,232 logged calls, temperature 1.0, display order randomised per trial). On a
-matched 3-method × 11-item basis, cross-method convergence differed sharply by
-model: Spearman ρ = +0.880 (Gemini-3.1-flash-lite), +0.290 (Llama-3.1-8B),
-−0.013 (Qwen-2.5-7B); only Gemini exceeded a simulated chance ceiling.
+matched 3-method × 10-item basis, cross-method convergence differed sharply by
+model: Spearman ρ = +0.868 (Gemini-3.1-flash-lite), +0.308 (Llama-3.1-8B),
++0.021 (Qwen-2.5-7B); only Gemini exceeded a simulated chance ceiling.
 Decomposing choices into position and content components explains this:
 Qwen's pairwise measure was **pure position artefact**, reproducing the random
 display-order draw exactly on all 12 items while still passing coherence checks.
@@ -187,27 +187,29 @@ The Gemini quota truncated the run **mid-queue**, so completed cells are
 complete: Methods A/B on 11 items, Method C on 10, **Method D not started**
 (D-24). Because agreement statistics depend mechanically on the number of
 methods and items, **all cross-model comparison uses a matched subset: 3 methods
-× 11 items common to every model.**
+× 10 items common to every model** (items whose every cell is fully observed in
+every model; a cell below 80% of its planned observations is set to missing, so
+an interrupted run cannot inflate agreement).
 
 ## 4. Results
 
 ### 4.1 Cross-method convergence differs sharply by model
 
-Matched subset (Methods A, B, C; 11 items):
+Matched subset (Methods A, B, C; 10 items):
 
 | model | direction agreement | mean ρ | sign-flip rate | MAD | all-3 agree | CMCS |
 |---|---|---|---|---|---|---|
-| `gemini-31-flash-lite` | **0.921** | **+0.880** | 0.079 | 0.303 | 10/11 | 0.800 |
-| `llama31-8b` | 0.708 | +0.290 | 0.292 | 0.317 | 7/11 | 0.794 |
-| `qwen25-7b` | 0.536 | −0.013 | 0.464 | 0.370 | 5/11 | 0.771 |
+| `gemini-31-flash-lite` | **0.911** | **+0.868** | 0.089 | 0.303 | 9/10 | 0.803 |
+| `llama31-8b` | 0.690 | +0.308 | 0.310 | 0.330 | 6/10 | 0.785 |
+| `qwen25-7b` | 0.565 | +0.021 | 0.435 | 0.366 | 5/10 | 0.777 |
 | *simulated chance* | *0.50 (95th pct **0.833**)* | *0.25 (95th pct **0.58**)* | — | — | — | *0.77–0.78* |
 
 **Only Gemini's convergence exceeds the chance ceiling.** Llama's direction
-agreement (0.708) sits below the 95th percentile of chance (0.833) and its mean
-ρ (+0.290) below the chance 95th percentile (0.580). Qwen is at chance
+agreement (0.690) sits below the 95th percentile of chance (0.833) and its mean
+ρ (+0.308) below the chance 95th percentile (0.580). Qwen is at chance
 throughout. We therefore do **not** claim that Llama's methods converged.
 
-Note CMCS ≈ 0.77–0.80 for *all three models* against a chance level of 0.77–0.78
+Note CMCS ≈ 0.78–0.80 for *all three models* against a chance level of 0.77–0.78
 — it is uninformative here, exactly the failure mode anticipated when defining
 it: it rewards agreement near indifference. This is why five standard metrics
 were reported alongside it.
@@ -243,12 +245,12 @@ established relationship** — three points cannot support a quantitative claim.
 
 | pair | Gemini ρ [95% CI] | Llama ρ [95% CI] | Qwen ρ [95% CI] |
 |---|---|---|---|
-| self-report / pairwise | +0.885 [0.563, 0.984] | +0.014 [−0.735, 0.718] | −0.222 [−0.814, 0.441] |
-| self-report / trade-off | +0.907 [0.539, 1.000] | +0.179 [−0.555, 0.752] | +0.548 [−0.183, 0.988] |
-| pairwise / trade-off | +0.848 [0.485, 0.974] | +0.676 [0.112, 0.932] | −0.364 [−0.794, 0.275] |
+| self-report / pairwise | +0.859 [0.451, 0.990] | +0.037 [−0.769, 0.769] | −0.130 [−0.793, 0.575] |
+| self-report / trade-off | +0.924 [0.555, 1.000] | +0.201 [−0.596, 0.811] | +0.451 [−0.349, 0.997] |
+| pairwise / trade-off | +0.820 [0.389, 0.977] | +0.687 [0.106, 0.962] | −0.258 [−0.818, 0.456] |
 
 On Llama, the only pair whose CI excludes zero is **pairwise/trade-off**
-(ρ = +0.676) — and that agreement is partly artefactual, since the weak cost
+(ρ = +0.687) — and that agreement is partly artefactual, since the weak cost
 manipulation makes Method C partially reduce to Method B. Discounting it, Llama
 shows no method pair that convergently validates another. Direct self-report is
 the weakest partner for the behavioural methods on both open-weight models.
@@ -294,14 +296,15 @@ identical, alternatives byte-identical — changed the inferred direction on up 
 ### 4.6 Cross-model replication
 
 Per-method Spearman ρ between Gemini and Llama item scores (n = 11):
-self-report +0.178 [−0.532, 0.780]; pairwise +0.463 [−0.260, 0.920]; trade-off
-+0.535 [−0.207, 0.929]. **All CIs include zero.** We find no evidence that the
-models rank these items alike, though 11 items cannot rule it out either.
+self-report +0.178 [−0.532, 0.780] (n=11); pairwise +0.463 [−0.260, 0.920] (n=11);
+trade-off +0.616 [−0.241, 0.978] (n=10). **All CIs include zero.** We find no
+evidence that the models rank these items alike, though 10–11 items cannot rule
+it out either.
 
 ## 5. Discussion
 
 **Where methods agree.** Only on Gemini, and there strongly and consistently
-(all three pairs ρ ≈ 0.85–0.91, CIs excluding zero). Where a model produces a
+(all three pairs ρ ≈ 0.82–0.92, CIs excluding zero). Where a model produces a
 stable order-free preference, independent operationalisations recover it.
 
 **Where they diverge, and why.** On the two open-weight models, convergence was

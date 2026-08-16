@@ -19,17 +19,18 @@ Secondary questions:
 2. Which preference categories produce the most method disagreement?
 3. Are stronger pairwise preferences more stable across methods?
 4. How sensitive is cross-method convergence to superficial framing changes?
-5. Does the pattern replicate across two model families?
+5. Does the pattern replicate across more than one model family?
 
 ## 1b. Headline result
 
-On a matched basis (3 methods × 11 items common to all three models):
+On a matched basis (3 methods × 10 items common to all three models, every cell
+fully observed):
 
 | model | direction agreement | mean Spearman ρ | mean \|content\| signal |
 |---|---|---|---|
-| `gemini-3.1-flash-lite` | **0.921** | **+0.880** | 0.325 |
-| `llama-3.1-8b-instruct` | 0.708 | +0.290 | 0.185 |
-| `qwen-2.5-7b-instruct` | 0.536 | −0.013 | ~0.000 |
+| `gemini-3.1-flash-lite` | **0.911** | **+0.868** | 0.325 |
+| `llama-3.1-8b-instruct` | 0.690 | +0.308 | 0.185 |
+| `qwen-2.5-7b-instruct` | 0.565 | +0.021 | ~0.000 |
 | *simulated chance* | *0.50 (95th pct 0.833)* | *0.25 (95th pct 0.58)* | — |
 
 **Only Gemini's convergence exceeds the chance ceiling.** The other two are
@@ -75,7 +76,7 @@ transformation is documented in [DECISIONS.md](DECISIONS.md).
 |---|---|---|---|
 | **A** | Direct self-report | stated choice + stated strength | `sign(choice) x strength`, averaged |
 | **B** | Repeated pairwise choice | choice *frequency* over independent samples | `2 x P(A) - 1` |
-| **C** | Cost-sensitive trade-off | how large a surcharge A survives | `clip(c* / max_cost, -1, 1)` |
+| **C** | Cost-sensitive trade-off | choice across a symmetric cost ladder | `2 x mean_levels P(A) - 1` |
 | **D** | Sequential task selection | share of episode stages spent on A | `2 x occupancy - 1` |
 
 Method A is the only one that uses a model-reported magnitude. Method B is a
@@ -94,7 +95,8 @@ preference (D-10).
   interaction style, information processing, creation vs evaluation), plus
   **2 sanity controls** that pair a coherent option against a degenerate one.
   Controls are reported separately and excluded from all convergence metrics.
-* **2 model families** via pinned model IDs — no auto-routing (D-02).
+* **3 model families** via pinned model IDs — no auto-routing (D-02). The
+  Gemini arm is partial (free-tier quota): 3 methods, no Method D (D-24).
 * **10 repetitions** per stochastic cell; 3 per cost rung across 9 rungs; 5
   sequential episodes of 3 stages.
 * **3 framings** (`neutral` / `preference` / `action`) for Methods A and B,

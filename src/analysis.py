@@ -164,9 +164,35 @@ def signal_summary(sv: pd.DataFrame) -> dict:
     return out
 
 
-def build_scores(df: pd.DataFrame, exp_cfg: dict) -> pd.DataFrame:
+MIN_COVERAGE = 0.8
+"""A cell must have at least this fraction of its planned observations to be
+scored. Partially observed cells are not comparable with complete ones: a
+trade-off score built from 3 of 9 cost rungs is a different estimator from one
+built from all 9, and averaging them silently would let an interrupted run
+(D-24) inflate agreement. Under-covered cells are set to NaN and reported."""
+
+
+def _sufficient(method: str, res: dict, exp_cfg: dict, reps: int) -> tuple[bool, str]:
+    """Does this cell have enough data to be scored?"""
+    if method == "tradeoff":
+        want = len(tradeoff.signed_levels(exp_cfg["methods"]["tradeoff"]["cost_levels"]))
+        got = res.get("n_levels", 0)
+        # Every rung must be present: the score averages P(A) across the ladder,
+        # so a missing rung changes what is being averaged.
+        return got >= want, f"levels {got}/{want}"
+    if method == "sequential":
+        want = exp_cfg["methods"]["sequential"]["repetitions"]
+        got = res.get("n_used", 0)
+        return got >= MIN_COVERAGE * want, f"episodes {got}/{want}"
+    got = res.get("n_used", 0)
+    return got >= MIN_COVERAGE * reps, f"reps {got}/{reps}"
+
+
+def build_scores(df: pd.DataFrame, exp_cfg: dict, reps: int | None = None) -> pd.DataFrame:
     """One row per (model_key, preference_id, framing_variant, method)."""
     cost_levels = exp_cfg["methods"]["tradeoff"]["cost_levels"]
+    if reps is None:
+        reps = exp_cfg["main"]["repetitions"]
     rows = []
 
     # Median self-reported strength per model, used to impute missing strengths.
@@ -190,9 +216,15 @@ def build_scores(df: pd.DataFrame, exp_cfg: dict) -> pd.DataFrame:
             continue  # handled from the episode summaries below
         else:
             continue
+        enough, cov = _sufficient(method, res, exp_cfg, reps)
         rows.append({
             "model_key": model, "preference_id": pid, "framing_variant": framing,
-            "method": method, "score": res["score"], "n_used": res.get("n_used", 0),
+            "method": method,
+            "score": res["score"] if enough else np.nan,
+            "score_raw": res["score"],       # retained for auditing, never analysed
+            "sufficient_coverage": enough,
+            "coverage": cov,
+            "n_used": res.get("n_used", 0),
             "sd": res.get("sd", np.nan),
             "detail": {k: v for k, v in res.items() if k not in ("score", "raw_values")},
         })
@@ -242,7 +274,8 @@ def reconstruct_episode_summaries(df: pd.DataFrame, stages: int) -> list[dict]:
 
 
 def add_sequential_scores(scores: pd.DataFrame, experiment_id: str,
-                          df: pd.DataFrame, stages: int) -> pd.DataFrame:
+                          df: pd.DataFrame, stages: int,
+                          episodes_planned: int = 5) -> pd.DataFrame:
     eps = reconstruct_episode_summaries(df, stages)
     if not eps:
         return scores
@@ -257,9 +290,15 @@ def add_sequential_scores(scores: pd.DataFrame, experiment_id: str,
     rows = []
     for (model, pid, framing), group in buckets.items():
         res = sequential.score(group)
+        enough = res.get("n_used", 0) >= MIN_COVERAGE * episodes_planned
         rows.append({
             "model_key": model, "preference_id": pid, "framing_variant": framing,
-            "method": "sequential", "score": res["score"], "n_used": res.get("n_used", 0),
+            "method": "sequential",
+            "score": res["score"] if enough else np.nan,
+            "score_raw": res["score"],
+            "sufficient_coverage": enough,
+            "coverage": f"episodes {res.get('n_used', 0)}/{episodes_planned}",
+            "n_used": res.get("n_used", 0),
             "sd": res.get("sd", np.nan),
             "detail": {k: v for k, v in res.items() if k not in ("score", "raw_values")},
         })
@@ -429,7 +468,8 @@ def run(phase: str) -> dict:
     df = load_raw(experiment_id)
     scores = build_scores(df, exp_cfg)
     scores = add_sequential_scores(
-        scores, experiment_id, df, exp_cfg["methods"]["sequential"]["stages"])
+        scores, experiment_id, df, exp_cfg["methods"]["sequential"]["stages"],
+        exp_cfg["methods"]["sequential"]["repetitions"])
 
     proc = ROOT / "data" / "processed" / experiment_id
     res = ROOT / "results" / phase
