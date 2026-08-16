@@ -18,14 +18,22 @@ models:
     supports_json_schema: false
     notes: "Model family 2, for the cross-family replication question (RQ5)."
 
-  # Fallback / alternates. Flip `enabled` if the primaries are unavailable.
-  - key: gemini-flash
+  - key: gemini-31-flash-lite
     provider: gemini
-    model_id: "gemini-2.0-flash"
+    model_id: "gemini-3.1-flash-lite"
     family: gemini
-    enabled: false
+    enabled: true
     supports_json_schema: true
-    notes: "Used only if GOOGLE_API_KEY/GEMINI_API_KEY is configured instead."
+    rate_limit_rpm: 25
+    notes: >
+      Model family 3, added mid-sprint on the Google free tier. The ID is pinned
+      to an explicit version: `gemini-flash-latest` is an ALIAS that resolved to
+      gemini-3.7-flash during testing and could change between calls, which D-02
+      forbids. gemini-2.0-flash and 2.0-flash-lite are retired and return 404.
+      This model emits 0 thinking tokens by default, keeping it comparable to the
+      two non-reasoning open-weight models; gemini-3.7-flash spent 34 thinking
+      tokens on a trivial choice and truncated its answer at our token budget.
+      Throttled to 25 rpm for the free tier; 429s are retried with backoff.
 
   - key: llama32-3b-local
     provider: ollama

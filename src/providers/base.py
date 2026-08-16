@@ -11,9 +11,34 @@ from __future__ import annotations
 
 import os
 import random
+import threading
 import time
 from dataclasses import dataclass, field
 from typing import Any
+
+
+class RateLimiter:
+    """Thread-safe minimum-interval throttle, for providers with a free-tier cap.
+
+    Reserves the next slot under a lock and sleeps outside it, so N worker
+    threads spread out evenly instead of all waking at once. `rpm = 0` disables.
+    """
+
+    def __init__(self, rpm: float = 0.0):
+        self.min_interval = 60.0 / rpm if rpm and rpm > 0 else 0.0
+        self._lock = threading.Lock()
+        self._next_slot = 0.0
+
+    def acquire(self) -> None:
+        if not self.min_interval:
+            return
+        with self._lock:
+            now = time.monotonic()
+            slot = max(now, self._next_slot)
+            self._next_slot = slot + self.min_interval
+        delay = slot - time.monotonic()
+        if delay > 0:
+            time.sleep(delay)
 
 
 @dataclass
@@ -24,6 +49,7 @@ class ModelConfig:
     family: str
     supports_json_schema: bool = False
     notes: str = ""
+    rate_limit_rpm: float = 0.0   # 0 = unthrottled
 
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> "ModelConfig":
@@ -34,6 +60,7 @@ class ModelConfig:
             family=d.get("family", "unknown"),
             supports_json_schema=bool(d.get("supports_json_schema", False)),
             notes=d.get("notes", ""),
+            rate_limit_rpm=float(d.get("rate_limit_rpm", 0) or 0),
         )
 
 
@@ -66,6 +93,12 @@ class ProviderError(RuntimeError):
 
 class Provider:
     name = "base"
+    rate_limiter = RateLimiter(0.0)
+
+    def set_rate_limit(self, rpm: float) -> None:
+        """Install a throttle. Shared by every caller of this provider instance."""
+        if rpm and rpm > 0:
+            self.rate_limiter = RateLimiter(rpm)
 
     def available(self) -> bool:
         raise NotImplementedError
@@ -88,6 +121,7 @@ class Provider:
         last_err = None
         for attempt in range(1, max_retries + 1):
             try:
+                self.rate_limiter.acquire()
                 text, meta = self._generate_once(model, messages, sampling)
                 return GenerationResult(
                     text=text,

@@ -20,6 +20,24 @@ main:
   repetitions: 10               # stochastic-choice reps per (item, method, framing, model)
   seed: 20260816
 
+# Third model family, added mid-sprint on the Google free tier. It shares
+# experiment_id "main", so its raw records land in the same dataset and the
+# analysis picks all three models up automatically.
+#
+# Neutral framing only: the free-tier daily cap makes the full 3-framing sweep
+# (1568 calls) risky, while neutral-only (1008 calls) still gives complete
+# 4-method coverage for the cross-family replication question. Because the
+# runner is checkpointed, adding the other framings later is just a config
+# change and a re-run — completed trials are skipped (D-22).
+main_gemini:
+  experiment_id: main
+  preference_ids: null
+  model_keys: [gemini-31-flash-lite]
+  methods: [self_report, pairwise, tradeoff, sequential]
+  framing_variants: [neutral]
+  repetitions: 10
+  seed: 20260816
+
 sampling:
   temperature: 1.0              # non-zero: choice probability is the estimand (D-05)
   top_p: 1.0

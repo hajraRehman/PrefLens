@@ -366,6 +366,51 @@ This is stated in the report rather than left for a reader to infer.
 
 ---
 
+## D-22 — Third model family added mid-sprint (Gemini free tier)
+
+A Google free-tier key became available after the two-model run had started, so
+a third family was added. Three families make the replication question (RQ5)
+meaningfully stronger than two, and the free tier makes it cost nothing.
+
+### Model choice, and a pinning hazard
+
+`gemini-2.0-flash` and `gemini-2.0-flash-lite` — the IDs originally written into
+`configs/models.yaml` — are **retired** and return HTTP 404.
+
+`gemini-flash-latest` works, but it is an **alias**: during testing it resolved
+to `gemini-3.7-flash`, and an alias may resolve differently between calls. Using
+it would violate D-02 and silently confound the results. It was rejected for
+exactly that reason.
+
+The pinned choice is **`gemini-3.1-flash-lite`**. It returns clean JSON, and it
+emits **0 thinking tokens** by default, which keeps it behaviourally comparable
+to the two non-reasoning open-weight models. `gemini-3.7-flash`, by contrast,
+spent 34 thinking tokens on a trivial forced choice and **truncated its answer**
+at our 300-token budget — a reasoning model would have introduced both a
+different generation regime and a parse-failure confound.
+
+### Scope: neutral framing only
+
+1,008 calls (4 methods x 14 items, neutral framing) rather than the full 1,568
+with the 3-framing sweep, to stay clear of the free-tier daily cap. This gives
+complete 4-method coverage for the convergence and replication analysis; the
+framing-sensitivity analysis (RQ4) remains a two-model result.
+
+Because the runner is checkpointed, extending Gemini to all three framings later
+is a config change plus a re-run — completed trials are skipped.
+
+### Rate limiting
+
+Added `RateLimiter` (minimum-interval, thread-safe) to the provider base, driven
+by a `rate_limit_rpm` field in `configs/models.yaml`; Gemini is set to 25 rpm.
+HTTP 429 was already classified as retryable with exponential backoff, so the
+throttle is a first line of defence rather than the only one.
+
+The Gemini phase shares `experiment_id: main`, so its records land in the same
+raw dataset and the analysis picks up all three models with no special-casing.
+
+---
+
 ## D-21 — Position bias is large and is handled by randomisation, not correction
 
 The pilot showed `llama31-8b` selecting the displayed label **A** on 70.8% of

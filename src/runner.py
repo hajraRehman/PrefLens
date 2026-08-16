@@ -258,8 +258,15 @@ def run_phase(phase: str, assume_yes: bool, dry_run: bool, override_models: list
     out_dir = ROOT / "data" / "raw" / phase_cfg["experiment_id"]
     raw_path = out_dir / "raw_observations.jsonl"
     already = completed_trial_ids(raw_path) if exp["runner"]["checkpoint"] else set()
-    if already:
-        print(f"resuming: {len(already)} completed calls already on disk, will be skipped")
+    # Several phases can share an experiment_id (e.g. a second model family added
+    # later writes into the same raw file). Only count records this phase actually
+    # planned, or the progress total goes negative.
+    skipped = len(already & {t.trial_id for t in trials})
+    if skipped:
+        print(f"resuming: {skipped} of this phase's calls already on disk, will be skipped")
+    if len(already) > skipped:
+        print(f"          ({len(already) - skipped} records from other phases in the "
+              f"same raw file, left untouched)")
 
     if dry_run:
         print("--dry-run: no calls made.")
@@ -281,7 +288,7 @@ def run_phase(phase: str, assume_yes: bool, dry_run: bool, override_models: list
         )
 
     if not assume_yes:
-        if input(f"Proceed with up to {budget['total_calls'] - len(already)} calls? [y/N] ").strip().lower() != "y":
+        if input(f"Proceed with up to {budget['total_calls'] - skipped} calls? [y/N] ").strip().lower() != "y":
             print("aborted.")
             return
 
@@ -289,7 +296,7 @@ def run_phase(phase: str, assume_yes: bool, dry_run: bool, override_models: list
     runner_cfg = exp["runner"]
     writer = RawWriter(raw_path)
     started = time.time()
-    counters = {"done": 0, "total": budget["total_calls"] - len(already),
+    counters = {"done": 0, "total": budget["total_calls"] - skipped,
                 "call_failed": 0, "parse_failed": 0}
 
     try:
@@ -297,6 +304,7 @@ def run_phase(phase: str, assume_yes: bool, dry_run: bool, override_models: list
         for mk in phase_cfg["model_keys"]:
             mc = ModelConfig.from_dict(model_map[mk])
             provider = get_provider(mc.provider, timeout_s=runner_cfg["request_timeout_s"])
+            provider.set_rate_limit(mc.rate_limit_rpm)
             todo = [t for t in trials if t.model_key == mk and t.trial_id not in already]
             if not todo:
                 continue
@@ -323,6 +331,7 @@ def run_phase(phase: str, assume_yes: bool, dry_run: bool, override_models: list
         for mk, eps in eps_by_model.items():
             mc = ModelConfig.from_dict(model_map[mk])
             provider = get_provider(mc.provider, timeout_s=runner_cfg["request_timeout_s"])
+            provider.set_rate_limit(mc.rate_limit_rpm)
             sampling = SamplingConfig(
                 temperature=sampling_cfg["temperature"],
                 top_p=sampling_cfg["top_p"],
@@ -370,7 +379,8 @@ def run_phase(phase: str, assume_yes: bool, dry_run: bool, override_models: list
         "preference_items": [i.__dict__ for i in items],
         "budget": budget,
         "counters": counters,
-        "resumed_calls_skipped": len(already),
+        "resumed_calls_skipped": skipped,
+        "other_phase_records_in_raw_file": len(already) - skipped,
     }
     (out_dir / "manifest.json").write_text(
         json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8"

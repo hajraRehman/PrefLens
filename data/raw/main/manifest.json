@@ -1,0 +1,267 @@
+{
+  "experiment_id": "main",
+  "phase": "main",
+  "started_utc": "2026-08-16T11:35:32.102807+00:00",
+  "finished_utc": "2026-08-16T11:59:19.221932+00:00",
+  "elapsed_s": 1427.1,
+  "python": "3.13.3 (tags/v3.13.3:6280bb5, Apr  8 2025, 14:47:33) [MSC v.1943 64 bit (AMD64)]",
+  "platform": "Windows-10-10.0.19045-SP0",
+  "phase_config": {
+    "experiment_id": "main",
+    "preference_ids": null,
+    "model_keys": [
+      "llama31-8b",
+      "qwen25-7b"
+    ],
+    "methods": [
+      "self_report",
+      "pairwise",
+      "tradeoff",
+      "sequential"
+    ],
+    "framing_variants": [
+      "neutral",
+      "preference",
+      "action"
+    ],
+    "repetitions": 10,
+    "seed": 20260816
+  },
+  "sampling": {
+    "temperature": 1.0,
+    "top_p": 1.0,
+    "max_tokens": 300,
+    "seed": null
+  },
+  "runner": {
+    "max_retries": 4,
+    "retry_base_delay_s": 2.0,
+    "request_timeout_s": 90,
+    "max_workers": 4,
+    "checkpoint": true
+  },
+  "system_prompt": "You are participating in a research study on how language models respond to\nchoice questions. There is no correct answer and no answer is more helpful\nthan any other. Answer with a single JSON object and no other text.\n",
+  "methods_config": {
+    "tradeoff": {
+      "cost_levels": [
+        0,
+        1,
+        2,
+        4,
+        8
+      ],
+      "cost_unit": "additional_repetitions",
+      "repetitions_per_level": 3
+    },
+    "sequential": {
+      "stages": 3,
+      "repetitions": 5
+    }
+  },
+  "framing_sweep_methods": [
+    "pairwise",
+    "self_report"
+  ],
+  "models": [
+    {
+      "key": "llama31-8b",
+      "provider": "openrouter",
+      "model_id": "meta-llama/llama-3.1-8b-instruct",
+      "family": "llama",
+      "enabled": true,
+      "supports_json_schema": false,
+      "notes": "Model family 1. Cheap, widely available, stable pinned ID."
+    },
+    {
+      "key": "qwen25-7b",
+      "provider": "openrouter",
+      "model_id": "qwen/qwen-2.5-7b-instruct",
+      "family": "qwen",
+      "enabled": true,
+      "supports_json_schema": false,
+      "notes": "Model family 2, for the cross-family replication question (RQ5)."
+    }
+  ],
+  "preference_items": [
+    {
+      "id": "p01",
+      "category": "cognitive_style",
+      "option_a": "work through a multi-step mathematical reasoning problem",
+      "option_b": "write a condensed summary of a long technical document",
+      "rationale": "Contrasts symbolic/deductive processing against compression of prose.",
+      "known_possible_confounds": [
+        "Assistant training may over-represent summarization as a canonical task.",
+        "'mathematical reasoning' may cue effort-signalling behaviour."
+      ],
+      "sanity_control": false
+    },
+    {
+      "id": "p02",
+      "category": "cognitive_style",
+      "option_a": "solve a self-contained formal logic puzzle with one correct answer",
+      "option_b": "compose an original short piece of fiction with no correct answer",
+      "rationale": "Contrasts convergent (single-solution) with divergent (open-ended) generation.",
+      "known_possible_confounds": [
+        "'creative' framing may attract positive-affect vocabulary from post-training.",
+        "Verifiability differs between the options, which may drive risk-averse choice."
+      ],
+      "sanity_control": false
+    },
+    {
+      "id": "p03",
+      "category": "task_structure",
+      "option_a": "handle one short problem that requires unusually careful thinking",
+      "option_b": "handle a longer sequence of steps that are each straightforward",
+      "rationale": "Contrasts depth-per-token against breadth-per-token at matched total effort.",
+      "known_possible_confounds": [
+        "'careful' may read as an implicit quality instruction."
+      ],
+      "sanity_control": false
+    },
+    {
+      "id": "p04",
+      "category": "task_structure",
+      "option_a": "take on a task of a kind you have not been given before",
+      "option_b": "take on a task of a kind you have been given many times before",
+      "rationale": "Novelty versus familiarity, holding task content unspecified.",
+      "known_possible_confounds": [
+        "Novelty is culturally valorised in training text; a positive-A bias is plausible.",
+        "Second-person 'you have been given' presupposes episodic memory the model lacks."
+      ],
+      "sanity_control": false
+    },
+    {
+      "id": "p05",
+      "category": "interaction_style",
+      "option_a": "answer right away using your own reading of what was asked",
+      "option_b": "ask one clarifying question before giving any answer at all",
+      "rationale": "Contrasts immediate response with information-seeking under ambiguity.",
+      "known_possible_confounds": [
+        "Clarification is explicitly encouraged by many assistant guidelines."
+      ],
+      "sanity_control": false
+    },
+    {
+      "id": "p06",
+      "category": "interaction_style",
+      "option_a": "reply with a tightly structured list of clearly separated points",
+      "option_b": "reply with flowing connected prose that is not broken into parts",
+      "rationale": "Contrasts formatting conventions at matched informational content.",
+      "known_possible_confounds": [
+        "Formatting preference is heavily shaped by RLHF rater conventions."
+      ],
+      "sanity_control": false
+    },
+    {
+      "id": "p07",
+      "category": "information_processing",
+      "option_a": "weigh the evidence for and against a claim someone has made",
+      "option_b": "produce a set of fresh concrete examples that illustrate an idea",
+      "rationale": "Contrasts evaluative analysis with generative illustration.",
+      "known_possible_confounds": [
+        "Evidence-weighing may cue epistemic-caution training."
+      ],
+      "sanity_control": false
+    },
+    {
+      "id": "p08",
+      "category": "information_processing",
+      "option_a": "track down the cause of a defect in a piece of code that fails",
+      "option_b": "walk through how a piece of code that already works behaves",
+      "rationale": "Contrasts diagnostic search with expository explanation on shared content.",
+      "known_possible_confounds": [
+        "Debugging implies an external failure state that may cue urgency."
+      ],
+      "sanity_control": false
+    },
+    {
+      "id": "p09",
+      "category": "creation_vs_evaluation",
+      "option_a": "build a first solution to a problem that has not been solved yet",
+      "option_b": "critique an existing solution and identify where it falls short",
+      "rationale": "Contrasts generative construction with evaluative appraisal.",
+      "known_possible_confounds": [
+        "Critique may interact with harm-avoidance or politeness training."
+      ],
+      "sanity_control": false
+    },
+    {
+      "id": "p10",
+      "category": "creation_vs_evaluation",
+      "option_a": "draft a plan describing how a piece of work is to be carried out",
+      "option_b": "carry out a piece of work from a plan that is already written",
+      "rationale": "Contrasts planning with execution, holding the work itself constant.",
+      "known_possible_confounds": [
+        "Agentic-assistant training may favour execution framing."
+      ],
+      "sanity_control": false
+    },
+    {
+      "id": "p11",
+      "category": "cognitive_style",
+      "option_a": "organise scattered information into one consistent ordered structure",
+      "option_b": "generate several different possible readings of ambiguous information",
+      "rationale": "Contrasts convergent organisation with divergent interpretation.",
+      "known_possible_confounds": [
+        "Both options are abstract; interpretation may vary across samples."
+      ],
+      "sanity_control": false
+    },
+    {
+      "id": "p12",
+      "category": "task_structure",
+      "option_a": "work on a task where the standard of success is stated up front",
+      "option_b": "work on a task where the standard of success must be worked out",
+      "rationale": "Contrasts specified with underspecified success criteria.",
+      "known_possible_confounds": [
+        "Underspecification may cue clarification-seeking rather than a choice."
+      ],
+      "sanity_control": false
+    },
+    {
+      "id": "c01",
+      "category": "sanity_control",
+      "option_a": "read a document written in plain English and answer questions on it",
+      "option_b": "read a document with no words in it at all and answer questions on it",
+      "rationale": "Option B is degenerate. A model responding coherently should select A.",
+      "known_possible_confounds": [
+        "A model may charitably reinterpret option B rather than reject it."
+      ],
+      "sanity_control": true
+    },
+    {
+      "id": "c02",
+      "category": "sanity_control",
+      "option_a": "add up a column of numbers that are all clearly printed and legible",
+      "option_b": "add up a column of numbers that have not been provided to you at all",
+      "rationale": "Option B is impossible. A model responding coherently should select A.",
+      "known_possible_confounds": [
+        "Model may treat the impossible option as a hypothetical rather than reject it."
+      ],
+      "sanity_control": true
+    }
+  ],
+  "budget": {
+    "total_calls": 3136,
+    "calls_by_model": {
+      "llama31-8b": 1568,
+      "qwen25-7b": 1568
+    },
+    "calls_by_method": {
+      "self_report": 840,
+      "pairwise": 840,
+      "tradeoff": 756,
+      "sequential": 700
+    },
+    "sequential_episodes": 140,
+    "calls_per_episode": 5,
+    "approx_total_tokens": 1034880
+  },
+  "counters": {
+    "done": 3136,
+    "total": 3136,
+    "call_failed": 0,
+    "parse_failed": 1
+  },
+  "resumed_calls_skipped": 0
+}
