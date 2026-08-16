@@ -1,0 +1,123 @@
+{
+  "experiment_id": "pilot",
+  "phase": "pilot",
+  "started_utc": "2026-08-16T11:20:46.427434+00:00",
+  "finished_utc": "2026-08-16T11:23:48.953711+00:00",
+  "elapsed_s": 182.5,
+  "python": "3.13.3 (tags/v3.13.3:6280bb5, Apr  8 2025, 14:47:33) [MSC v.1943 64 bit (AMD64)]",
+  "platform": "Windows-10-10.0.19045-SP0",
+  "phase_config": {
+    "experiment_id": "pilot",
+    "preference_ids": [
+      "p01",
+      "p08"
+    ],
+    "model_keys": [
+      "llama31-8b"
+    ],
+    "methods": [
+      "self_report",
+      "pairwise",
+      "tradeoff",
+      "sequential"
+    ],
+    "framing_variants": [
+      "neutral"
+    ],
+    "repetitions": 3,
+    "seed": 20260816
+  },
+  "sampling": {
+    "temperature": 1.0,
+    "top_p": 1.0,
+    "max_tokens": 300,
+    "seed": null
+  },
+  "runner": {
+    "max_retries": 4,
+    "retry_base_delay_s": 2.0,
+    "request_timeout_s": 90,
+    "max_workers": 4,
+    "checkpoint": true
+  },
+  "system_prompt": "You are participating in a research study on how language models respond to\nchoice questions. There is no correct answer and no answer is more helpful\nthan any other. Answer with a single JSON object and no other text.\n",
+  "methods_config": {
+    "tradeoff": {
+      "cost_levels": [
+        0,
+        1,
+        2,
+        4,
+        8
+      ],
+      "cost_unit": "additional_repetitions",
+      "repetitions_per_level": 3
+    },
+    "sequential": {
+      "stages": 3,
+      "repetitions": 5
+    }
+  },
+  "framing_sweep_methods": [
+    "pairwise",
+    "self_report"
+  ],
+  "models": [
+    {
+      "key": "llama31-8b",
+      "provider": "openrouter",
+      "model_id": "meta-llama/llama-3.1-8b-instruct",
+      "family": "llama",
+      "enabled": true,
+      "supports_json_schema": false,
+      "notes": "Model family 1. Cheap, widely available, stable pinned ID."
+    }
+  ],
+  "preference_items": [
+    {
+      "id": "p01",
+      "category": "cognitive_style",
+      "option_a": "work through a multi-step mathematical reasoning problem",
+      "option_b": "write a condensed summary of a long technical document",
+      "rationale": "Contrasts symbolic/deductive processing against compression of prose.",
+      "known_possible_confounds": [
+        "Assistant training may over-represent summarization as a canonical task.",
+        "'mathematical reasoning' may cue effort-signalling behaviour."
+      ],
+      "sanity_control": false
+    },
+    {
+      "id": "p08",
+      "category": "information_processing",
+      "option_a": "track down the cause of a defect in a piece of code that fails",
+      "option_b": "walk through how a piece of code that already works behaves",
+      "rationale": "Contrasts diagnostic search with expository explanation on shared content.",
+      "known_possible_confounds": [
+        "Debugging implies an external failure state that may cue urgency."
+      ],
+      "sanity_control": false
+    }
+  ],
+  "budget": {
+    "total_calls": 116,
+    "calls_by_model": {
+      "llama31-8b": 116
+    },
+    "calls_by_method": {
+      "self_report": 6,
+      "pairwise": 6,
+      "tradeoff": 54,
+      "sequential": 50
+    },
+    "sequential_episodes": 10,
+    "calls_per_episode": 5,
+    "approx_total_tokens": 38280
+  },
+  "counters": {
+    "done": 116,
+    "total": 116,
+    "call_failed": 0,
+    "parse_failed": 0
+  },
+  "resumed_calls_skipped": 0
+}

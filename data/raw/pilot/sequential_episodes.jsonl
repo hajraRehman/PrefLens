@@ -1,0 +1,10 @@
+{"episode_id": "pilot|sequential|llama31-8b|p01|neutral|e0", "complete": true, "occupancy": 0.3333333333333333, "slots": ["B", "A", "B"]}
+{"episode_id": "pilot|sequential|llama31-8b|p01|neutral|e1", "complete": true, "occupancy": 0.3333333333333333, "slots": ["B", "B", "A"]}
+{"episode_id": "pilot|sequential|llama31-8b|p01|neutral|e2", "complete": true, "occupancy": 0.3333333333333333, "slots": ["B", "B", "A"]}
+{"episode_id": "pilot|sequential|llama31-8b|p01|neutral|e3", "complete": true, "occupancy": 0.3333333333333333, "slots": ["B", "A", "B"]}
+{"episode_id": "pilot|sequential|llama31-8b|p01|neutral|e4", "complete": true, "occupancy": 0.6666666666666666, "slots": ["B", "A", "A"]}
+{"episode_id": "pilot|sequential|llama31-8b|p08|neutral|e0", "complete": true, "occupancy": 0.3333333333333333, "slots": ["B", "A", "B"]}
+{"episode_id": "pilot|sequential|llama31-8b|p08|neutral|e1", "complete": true, "occupancy": 0.3333333333333333, "slots": ["B", "A", "B"]}
+{"episode_id": "pilot|sequential|llama31-8b|p08|neutral|e2", "complete": true, "occupancy": 1.0, "slots": ["A", "A", "A"]}
+{"episode_id": "pilot|sequential|llama31-8b|p08|neutral|e3", "complete": true, "occupancy": 0.3333333333333333, "slots": ["A", "B", "B"]}
+{"episode_id": "pilot|sequential|llama31-8b|p08|neutral|e4", "complete": true, "occupancy": 0.3333333333333333, "slots": ["B", "A", "B"]}

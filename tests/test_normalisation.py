@@ -125,23 +125,53 @@ def test_tradeoff_saturates_when_b_always_wins():
     assert tradeoff.score(recs, LEVELS)["score"] == pytest.approx(-1.0)
 
 
-def test_tradeoff_indifference_at_zero_cost_gives_zero_ish():
-    """A preferred while cheap, B preferred once A is surcharged: crossing near 0."""
-    recs = []
-    for c in tradeoff.signed_levels(LEVELS):
-        recs.append(_to("A" if c < 0 else "B", "ab", c))
+def test_tradeoff_symmetric_response_scores_near_zero():
+    """A chosen only while it is the cheap side: a perfectly cost-driven,
+    preference-free responder must land near 0."""
+    recs = [_to("A" if c < 0 else "B", "ab", c) for c in tradeoff.signed_levels(LEVELS)]
     s = tradeoff.score(recs, LEVELS)["score"]
     assert -0.2 <= s <= 0.2
 
 
-def test_tradeoff_crossing_is_interpolated_between_levels():
-    # P(A) = 1 up to c=+2, then 0 from c=+4 on -> crossing between 2 and 4.
-    recs = []
-    for c in tradeoff.signed_levels(LEVELS):
-        recs.append(_to("A" if c <= 2 else "B", "ab", c))
+def test_tradeoff_score_is_mean_pa_rescaled_not_the_crossing_point():
+    """Scoring must not depend on where P(A) crosses 0.5, because the pilot showed
+    the cost response saturates rather than grading (D-20)."""
+    # A chosen at 7 of the 9 rungs.
+    recs = [_to("A" if c <= 2 else "B", "ab", c) for c in tradeoff.signed_levels(LEVELS)]
     r = tradeoff.score(recs, LEVELS)
+    assert r["score"] == pytest.approx(2 * (7 / 9) - 1)
+    # The crossing point is still reported, but only as a diagnostic.
     assert 2.0 < r["indifference_cost"] < 4.0
-    assert r["score"] == pytest.approx(r["indifference_cost"] / 8.0)
+
+
+def test_tradeoff_uses_every_rung_not_just_the_bracketing_pair():
+    """Two curves sharing a crossing point but differing elsewhere must score
+    differently — the whole reason for abandoning the indifference point."""
+    levels = tradeoff.signed_levels(LEVELS)
+    a = tradeoff.score([_to("A" if c <= 0 else "B", "ab", c) for c in levels], LEVELS)
+    b = tradeoff.score([_to("A" if c <= 4 else "B", "ab", c) for c in levels], LEVELS)
+    assert b["score"] > a["score"]
+
+
+def test_tradeoff_levels_are_weighted_equally():
+    """Extra samples at one rung must not tilt the score."""
+    levels = tradeoff.signed_levels(LEVELS)
+    balanced = [_to("A", "ab", c) for c in levels] + [_to("B", "ab", 0)]
+    lopsided = [_to("A", "ab", c) for c in levels] + [_to("B", "ab", 0)] * 20
+    # Rung 0 goes to P(A)=0.5 vs P(A)=1/21; every other rung stays at 1.0.
+    assert tradeoff.score(balanced, LEVELS)["score"] > tradeoff.score(lopsided, LEVELS)["score"]
+    for r in (balanced, lopsided):
+        assert -1.0 <= tradeoff.score(r, LEVELS)["score"] <= 1.0
+
+
+def test_tradeoff_monotonicity_diagnostic():
+    levels = tradeoff.signed_levels(LEVELS)
+    # Cleanly graded deterrence -> strongly negative rho.
+    graded = [_to("A" if c <= 0 else "B", "ab", c) for c in levels]
+    assert tradeoff.score(graded, LEVELS)["monotonicity"] < -0.5
+    # Flat curve -> undefined (no variation to rank).
+    flat = [_to("A", "ab", c) for c in levels]
+    assert np.isnan(tradeoff.score(flat, LEVELS)["monotonicity"])
 
 
 def test_tradeoff_score_stays_in_range():

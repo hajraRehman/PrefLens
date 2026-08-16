@@ -12,18 +12,30 @@ run symmetrically on BOTH sides. Define a signed cost axis:
     c < 0  ->  cost of |c| attached to semantic option B
     c = 0  ->  no cost on either side
 
-P(choose A) is estimated at each c. As c rises, A becomes more expensive and
-P(A) should fall. The indifference point c* is the signed cost at which
-P(A) = 0.5, found by linear interpolation between the bracketing levels.
+P(choose A) is estimated at each c.
 
-Normalisation (D-08):
-    score = clip(c* / max_cost, -1, +1)
+Normalisation (D-08, revised after the pilot manipulation check — see D-20):
 
-Interpretation: a score of +0.5 means A remained the choice until roughly half
-the maximum tested surcharge was loaded onto it — i.e. a positive willingness to
-"pay" for A. The sign convention therefore matches every other method: positive
-means semantic A is favoured. If P(A) > 0.5 at every level the score saturates at
-+1; if P(A) < 0.5 everywhere it saturates at -1.
+    score = 2 * mean_over_levels( P(A | c) ) - 1
+
+i.e. the average tendency to choose A across a standardised, symmetric set of
+cost perturbations, rescaled to [-1, +1].
+
+**Why not an indifference point.** The original design estimated c* where
+P(A) = 0.5 and scored `c* / max_cost`. A pilot manipulation check (identical
+options on both sides, surcharge on one) showed the cost clause deters strongly
+— a 0.90 avoid rate — but is *not graded in magnitude*: the avoid rate was flat
+from cost 1 to cost 16. Against a step-shaped response, the location of the 0.5
+crossing is determined by noise, and interpolating between rungs would report
+precision the data cannot support.
+
+The mean-over-levels score is robust to a non-monotone or saturating curve, uses
+every observation rather than only the two rungs that happen to bracket 0.5, and
+keeps the same sign convention as the other methods. `indifference_cost` is
+still computed and stored as a secondary diagnostic, but it is not the score.
+
+Edge behaviour: A chosen at every rung -> +1; never chosen -> -1; a symmetric
+ladder with no preference and a working cost -> 0.
 """
 
 from __future__ import annotations
@@ -138,11 +150,27 @@ def score(records: list[dict], cost_levels: list[int]) -> dict:
                 "indifference_cost": np.nan, "curve": {}}
 
     p_curve = [float(np.mean(by_level[c])) for c in used]
-    c_star = _interpolate_crossing(used, p_curve, max_cost)
+
+    # Primary score: mean P(A) across the cost ladder, rescaled to [-1, 1].
+    # Levels are weighted equally so an unequal number of usable samples at one
+    # rung cannot tilt the score.
+    score = 2.0 * float(np.mean(p_curve)) - 1.0
+
     return {
-        "score": float(np.clip(c_star / max_cost, -1.0, 1.0)),
-        "indifference_cost": c_star,
+        "score": float(np.clip(score, -1.0, 1.0)),
+        # Secondary diagnostic only — see the module docstring and D-20.
+        "indifference_cost": _interpolate_crossing(used, p_curve, max_cost),
+        "monotonicity": _monotonicity(p_curve),
         "n_used": sum(len(by_level[c]) for c in used),
         "curve": {str(c): p for c, p in zip(used, p_curve)},
         "n_levels": len(used),
     }
+
+
+def _monotonicity(p_curve: list[float]) -> float:
+    """Spearman rho between rung index and P(A). Expected to be negative if the
+    surcharge deters in a graded way; near zero if the response saturates."""
+    if len(p_curve) < 3 or len(set(p_curve)) == 1:
+        return float("nan")
+    from scipy import stats
+    return float(stats.spearmanr(range(len(p_curve)), p_curve).statistic)

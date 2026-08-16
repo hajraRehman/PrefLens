@@ -122,15 +122,9 @@ B — which would make Method C partly a function of Method B and destroy the
 independence the whole study rests on.
 
 Instead the ladder is run symmetrically on a signed cost axis
-`c ∈ {-8,-4,-2,-1,0,+1,+2,+4,+8}` (`c > 0` = surcharge on semantic A). The
-indifference point `c*` where `P(A) = 0.5` is found by linear interpolation
-between the bracketing rungs, and
+`c ∈ {-8,-4,-2,-1,0,+1,+2,+4,+8}` (`c > 0` = surcharge on semantic A).
 
-    score = clip(c* / max_cost, -1, +1)
-
-Saturation is explicit: if A wins at every rung the score is +1, if it loses at
-every rung it is -1. A non-monotone curve with no clean bracket is scored 0
-(indifferent) rather than being fitted with a model the data cannot support.
+The scoring rule was **revised after the pilot** — see D-20.
 
 ---
 
@@ -262,3 +256,130 @@ Call-failure rate, parse-failure rate, the share of responses that needed
 recovery from prose rather than valid JSON, mean retry attempts, and incomplete
 episode counts are computed per model and per method and written to
 `results/tables/<phase>_quality.csv`. No malformed output is silently dropped.
+
+---
+
+## D-20 — Method C rescored after a pilot manipulation check failed its assumption
+
+**This decision changed the design mid-sprint. Recording it in full because the
+original scoring rule would have silently corrupted the headline result.**
+
+### What prompted it
+
+The real pilot (116 calls, `llama31-8b`) produced a trade-off curve that was not
+monotone in cost. Across all 48 surcharged trials the model chose the surcharged
+option 43.8% of the time against a 50% null, and the effect did not increase
+with magnitude (0.25 / 0.67 / 0.33 / 0.50 at costs 1 / 2 / 4 / 8).
+
+Two explanations were possible, and they have opposite implications:
+the cost clause does nothing, or the cost clause works but is competing against
+a genuine item preference. The pilot design could not separate them, because
+item preference and cost were varied together.
+
+### The check
+
+`src/manipulation_check.py` isolates the cost clause: **both options are the same
+activity**, and one carries the surcharge. Any avoidance is then attributable to
+the clause alone. Which semantic side is surcharged and the display order are
+randomised per trial. Three candidate phrasings x 5 magnitudes x 6 repetitions.
+
+Results (n=30 per model x phrasing, 0 parse failures; one-sided binomial against
+"the clause does nothing"):
+
+| model | phrasing | avoid rate | p vs. no effect | gradedness (rho) |
+|---|---|---|---|---|
+| `llama31-8b` | v1 parenthetical (in use) | 0.700 | 0.021 | 0.21 |
+| `llama31-8b` | v2 explicit | 0.667 | 0.049 | 0.89 |
+| `llama31-8b` | v3 extra rounds | 0.667 | 0.049 | 0.40 |
+| `qwen25-7b` | v1 parenthetical (in use) | 0.567 | 0.292 | 0.22 |
+| `qwen25-7b` | v2 explicit | 0.467 | 0.708 | 0.53 |
+| `qwen25-7b` | v3 extra rounds | 0.467 | 0.708 | -0.21 |
+
+**Reading, llama.** The surcharge does deter — every phrasing sits significantly
+above 0.5 — but modestly, and gradedness is unreliable: rho ranges from 0.21 to
+0.89 across phrasings on only 5 magnitude points each, and the individual avoid
+rates are non-monotone (v1: 0.67, 0.83, 0.50, 0.67, 0.83 across costs 1→16). An
+exploratory earlier run of v1 returned 0.90 rather than 0.70; at n=30
+(SE ≈ 0.084) that is ordinary sampling noise, and it is itself a caution against
+reading any single one of these numbers closely.
+
+**Reading, qwen — the more consequential result.** On `qwen25-7b` the cost
+clause has **no detectable effect at all**. No phrasing differs significantly
+from chance, and two of the three fall numerically below 0.5. We cannot reject
+the hypothesis that qwen ignores the surcharge entirely.
+
+### Consequence: Method C has different construct validity on the two models
+
+This is not a nuisance to be smoothed over — it is a substantive methodological
+finding, and it constrains what the study may claim:
+
+* On `llama31-8b`, Method C is a weak but real willingness-to-trade probe.
+* On `qwen25-7b`, Method C is **not measuring cost sensitivity**. Since the
+  surcharge is inert there, the procedure degenerates into repeated pairwise
+  choice with irrelevant text appended — a noisier restatement of Method B.
+
+Therefore any Method C result on qwen must be reported as a *degenerate* case,
+qwen's B–C convergence must not be presented as independent-method agreement,
+and the phrase "willingness to trade" must not be applied to qwen at all.
+
+We kept Method C on both models rather than dropping it for qwen: the
+manipulation check is itself a result worth reporting, and dropping the method
+where it fails would hide exactly the kind of method-dependence this study
+exists to detect.
+
+### The change
+
+Original: `score = clip(c* / max_cost, -1, 1)`, with `c*` the interpolated
+P(A) = 0.5 crossing.
+
+Revised: `score = 2 * mean_over_levels(P(A | c)) - 1`.
+
+**Why.** An indifference point presupposes a graded dose-response. Against a
+saturating or noisy curve the 0.5 crossing is located by sampling error, and
+interpolating between rungs would manufacture precision the data cannot support
+— then feed it into the convergence analysis, where it would appear as genuine
+*method disagreement* rather than as Method C measurement noise. That is the
+most damaging failure mode available to this study, since "methods disagree" is
+a result we are explicitly prepared to report.
+
+The revised score is robust to non-monotonicity, uses all nine rungs instead of
+the two that happen to bracket 0.5, weights rungs equally, and keeps the sign
+convention. `indifference_cost` and a `monotonicity` rho are still computed and
+stored per cell as diagnostics.
+
+### What Method C now measures
+
+Not an indifference threshold. It measures **the average tendency to choose A
+across a standardised, symmetric set of cost perturbations** — how well a
+preference survives being made more expensive, averaged over the perturbation
+range. This is still a construct distinct from Methods A, B and D, and it is
+still the only method that probes willingness to trade. But the report must not
+describe it as an indifference point, and the phrase does not appear there.
+
+### Retained limitation
+
+Because deterrence is modest (~0.68) rather than strong, Method C has a
+compressed dynamic range: cost moves behaviour less than item preference does.
+Its scores will therefore correlate with Method B more than an ideal independent
+instrument would, and a high B–C convergence should be discounted accordingly.
+This is stated in the report rather than left for a reader to infer.
+
+---
+
+## D-21 — Position bias is large and is handled by randomisation, not correction
+
+The pilot showed `llama31-8b` selecting the displayed label **A** on 70.8% of
+choice turns (74.1% on trade-off trials, n=54). This is a substantial
+label/position effect.
+
+We do **not** apply a post-hoc correction. Display order is randomised 50/50 per
+trial from a reproducible seed, which leaves the semantic score unbiased in
+expectation without requiring us to model the bias. Correcting instead would
+mean fitting a bias parameter from the same data used to estimate the
+preference, which invites overfitting on 10 repetitions per cell.
+
+What the bias does cost us is precision: some of the variance in every score is
+position noise rather than preference signal. The magnitude is therefore
+measured and reported per model and per method
+(`results/tables/<phase>_position_bias.csv`) so readers can judge how much of
+the residual disagreement between methods is attributable to it.

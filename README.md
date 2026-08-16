@@ -1,6 +1,9 @@
-# Do LLM preference measures agree?
+# PrefLens
 
-**A multi-method convergent-validity study of preference elicitation.**
+**Testing convergent validity in LLM preference elicitation.**
+
+A multi-method study asking whether four independent ways of measuring the same
+apparent preference agree with each other.
 Digital Minds Research Sprint — Track 4 (Preference Elicitation Methods).
 
 ---
@@ -84,7 +87,7 @@ Total main-run budget: **3,136 API calls** (~1.0M tokens), printed before launch
 ## 5. Installation
 
 ```bash
-git clone <repo> && cd Hackathon
+git clone https://github.com/hajraRehman/PrefLens.git && cd PrefLens
 python -m venv .venv
 .venv/Scripts/activate          # Windows
 # source .venv/bin/activate     # macOS / Linux
