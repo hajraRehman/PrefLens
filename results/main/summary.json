@@ -1,7 +1,7 @@
 {
   "phase": "main",
   "experiment_id": "main",
-  "n_raw_records": 3243,
+  "n_raw_records": 3678,
   "models": [
     "gemini-31-flash-lite",
     "llama31-8b",
@@ -16,87 +16,109 @@
   "n_items_analysed": 12,
   "per_model": {
     "gemini-31-flash-lite": {
-      "n_items": 3,
+      "n_items": 11,
       "methods": [
         "self_report",
         "pairwise",
         "tradeoff"
       ],
+      "signal_vs_position": {
+        "pairwise": {
+          "mean_abs_content": 0.325,
+          "mean_position": 0.30454545454545456,
+          "signal_ratio": 1.0671641791044777,
+          "degenerate": false,
+          "n_items": 11,
+          "n_items_with_content": 8
+        },
+        "self_report": {
+          "mean_abs_content": 0.2930735930735931,
+          "mean_position": 0.28008658008658005,
+          "signal_ratio": 1.046367851622875,
+          "degenerate": false,
+          "n_items": 11,
+          "n_items_with_content": 6
+        }
+      },
+      "degenerate_methods": [],
+      "convergence_interpretable": true,
       "convergence_pairs": [
         {
           "method_a": "self_report",
           "method_b": "pairwise",
-          "direction_agreement": 1.0,
-          "n_directed_items": 1,
-          "n_undirected_items": 2,
-          "sign_flip_rate": 0.0,
-          "spearman_rho": 1.0,
-          "spearman_lo": NaN,
-          "spearman_hi": NaN,
-          "spearman_p": 0.0,
-          "pearson_r": 0.9986,
-          "mean_abs_disagreement": 0.4644,
-          "n_items": 3
+          "direction_agreement": 0.875,
+          "n_directed_items": 8,
+          "n_undirected_items": 3,
+          "sign_flip_rate": 0.125,
+          "spearman_rho": 0.8846,
+          "spearman_lo": 0.5627,
+          "spearman_hi": 0.9835,
+          "spearman_p": 0.0003,
+          "pearson_r": 0.8756,
+          "mean_abs_disagreement": 0.4064,
+          "n_items": 11
         },
         {
           "method_a": "self_report",
           "method_b": "tradeoff",
           "direction_agreement": 1.0,
-          "n_directed_items": 1,
+          "n_directed_items": 9,
           "n_undirected_items": 2,
           "sign_flip_rate": 0.0,
-          "spearman_rho": NaN,
-          "spearman_lo": NaN,
-          "spearman_hi": NaN,
-          "spearman_p": NaN,
-          "pearson_r": NaN,
-          "mean_abs_disagreement": 0.3285,
-          "n_items": 2
+          "spearman_rho": 0.9066,
+          "spearman_lo": 0.5385,
+          "spearman_hi": 1.0,
+          "spearman_p": 0.0001,
+          "pearson_r": 0.9183,
+          "mean_abs_disagreement": 0.2412,
+          "n_items": 11
         },
         {
           "method_a": "pairwise",
           "method_b": "tradeoff",
-          "direction_agreement": 1.0,
-          "n_directed_items": 2,
-          "n_undirected_items": 1,
-          "sign_flip_rate": 0.0,
-          "spearman_rho": NaN,
-          "spearman_lo": NaN,
-          "spearman_hi": NaN,
-          "spearman_p": NaN,
-          "pearson_r": NaN,
-          "mean_abs_disagreement": 0.1815,
-          "n_items": 2
+          "direction_agreement": 0.8889,
+          "n_directed_items": 9,
+          "n_undirected_items": 2,
+          "sign_flip_rate": 0.1111,
+          "spearman_rho": 0.848,
+          "spearman_lo": 0.4854,
+          "spearman_hi": 0.9735,
+          "spearman_p": 0.001,
+          "pearson_r": 0.9057,
+          "mean_abs_disagreement": 0.262,
+          "n_items": 11
         }
       ],
-      "mean_direction_agreement": 1.0,
-      "mean_spearman_rho": 1.0,
-      "mean_abs_disagreement": 0.32481481481481483,
-      "mean_sign_flip_rate": 0.0,
+      "mean_direction_agreement": 0.9212962962962963,
+      "mean_spearman_rho": 0.8797337070845987,
+      "mean_abs_disagreement": 0.3031874298540965,
+      "mean_sign_flip_rate": 0.0787037037037037,
       "cmcs": {
-        "point": 0.78320987654321,
-        "lo": 0.7085185185185185,
-        "hi": 0.8277777777777778,
-        "n": 3
+        "point": 0.8002693602693604,
+        "lo": 0.7577691498316498,
+        "hi": 0.8428539562289563,
+        "n": 11
       },
-      "n_items_all_methods_same_direction": 3,
+      "n_items_all_methods_same_direction": 10,
       "strength_vs_stability": {
-        "spearman_rho": 0.5,
-        "ci_lo": NaN,
-        "ci_hi": NaN,
-        "p_value": 0.6666666666666666,
-        "n_items": 3,
-        "note": "Negative rho supports the hypothesis (stronger pairwise margin -> less cross-method disagreement)."
+        "spearman_rho": 0.6213058941952166,
+        "ci_lo": 0.018157236527676673,
+        "ci_hi": 0.9317583016150213,
+        "p_value": 0.04131181214953538,
+        "n_items": 11,
+        "note": "Negative rho supports the hypothesis (stronger pairwise margin -> less cross-method disagreement).",
+        "valid": true,
+        "invalid_reason": null
       },
       "random_baseline": {
-        "direction_agreement_mean": 0.5012372634643376,
-        "direction_agreement_p95": 1.0,
-        "abs_spearman_mean": 0.6254625379122792,
-        "abs_spearman_p95": 1.0,
-        "cmcs_mean": 0.76928,
-        "cmcs_p95": 0.8833333333333333,
+        "direction_agreement_mean": 0.4982365087736162,
+        "direction_agreement_p95": 0.8333333333333334,
+        "abs_spearman_mean": 0.2586536809909451,
+        "abs_spearman_p95": 0.6153892580877751,
+        "cmcs_mean": 0.7698027272727274,
+        "cmcs_p95": 0.8272727272727274,
         "n_sim": 5000,
-        "n_items": 3,
+        "n_items": 11,
         "n_methods": 3,
         "n_reps_per_score": 10
       },
@@ -112,6 +134,34 @@
         "tradeoff",
         "sequential"
       ],
+      "signal_vs_position": {
+        "pairwise": {
+          "mean_abs_content": 0.18531746031746035,
+          "mean_position": 0.3182539682539683,
+          "signal_ratio": 0.5822942643391522,
+          "degenerate": false,
+          "n_items": 12,
+          "n_items_with_content": 5
+        },
+        "self_report": {
+          "mean_abs_content": 0.07936507936507936,
+          "mean_position": 0.8412698412698413,
+          "signal_ratio": 0.09433962264150943,
+          "degenerate": false,
+          "n_items": 12,
+          "n_items_with_content": 2
+        },
+        "sequential": {
+          "mean_abs_content": 0.19696969696969696,
+          "mean_position": 0.42424242424242425,
+          "signal_ratio": 0.46428571428571425,
+          "degenerate": false,
+          "n_items": 11,
+          "n_items_with_content": 5
+        }
+      },
+      "degenerate_methods": [],
+      "convergence_interpretable": true,
       "convergence_pairs": [
         {
           "method_a": "self_report",
@@ -221,7 +271,9 @@
         "ci_hi": 0.8127302600104703,
         "p_value": 0.1439658566984238,
         "n_items": 12,
-        "note": "Negative rho supports the hypothesis (stronger pairwise margin -> less cross-method disagreement)."
+        "note": "Negative rho supports the hypothesis (stronger pairwise margin -> less cross-method disagreement).",
+        "valid": true,
+        "invalid_reason": null
       },
       "random_baseline": {
         "direction_agreement_mean": 0.5023657936507936,
@@ -306,6 +358,36 @@
         "tradeoff",
         "sequential"
       ],
+      "signal_vs_position": {
+        "pairwise": {
+          "mean_abs_content": 0.0,
+          "mean_position": 1.0,
+          "signal_ratio": 0.0,
+          "degenerate": true,
+          "n_items": 12,
+          "n_items_with_content": 0
+        },
+        "self_report": {
+          "mean_abs_content": 0.15625,
+          "mean_position": 0.6875,
+          "signal_ratio": 0.22727272727272727,
+          "degenerate": false,
+          "n_items": 12,
+          "n_items_with_content": 4
+        },
+        "sequential": {
+          "mean_abs_content": 0.015151515151515154,
+          "mean_position": 0.9696969696969696,
+          "signal_ratio": 0.015625000000000003,
+          "degenerate": false,
+          "n_items": 11,
+          "n_items_with_content": 1
+        }
+      },
+      "degenerate_methods": [
+        "pairwise"
+      ],
+      "convergence_interpretable": false,
       "convergence_pairs": [
         {
           "method_a": "self_report",
@@ -415,7 +497,9 @@
         "ci_hi": 0.8983128453568404,
         "p_value": 0.04253024219303926,
         "n_items": 12,
-        "note": "Negative rho supports the hypothesis (stronger pairwise margin -> less cross-method disagreement)."
+        "note": "Negative rho supports the hypothesis (stronger pairwise margin -> less cross-method disagreement).",
+        "valid": false,
+        "invalid_reason": "pairwise measure is degenerate (pure position responding); |pairwise strength| carries no preference information"
       },
       "random_baseline": {
         "direction_agreement_mean": 0.5023657936507936,
@@ -547,22 +631,22 @@
     "model_b": "llama31-8b",
     "per_method_spearman": {
       "self_report": {
-        "rho": 1.0,
-        "lo": NaN,
-        "hi": NaN,
-        "n": 3
+        "rho": 0.17767699855550004,
+        "lo": -0.5317323911556873,
+        "hi": 0.7799564615977679,
+        "n": 11
       },
       "pairwise": {
-        "rho": 1.0,
-        "lo": NaN,
-        "hi": NaN,
-        "n": 3
+        "rho": 0.4633893475578934,
+        "lo": -0.2596935942178664,
+        "hi": 0.9200869437112952,
+        "n": 11
       },
       "tradeoff": {
-        "rho": NaN,
-        "lo": NaN,
-        "hi": NaN,
-        "n": 2
+        "rho": 0.535481725809726,
+        "lo": -0.20710227397336384,
+        "hi": 0.9290266781925098,
+        "n": 11
       }
     }
   }

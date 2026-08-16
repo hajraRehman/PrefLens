@@ -105,6 +105,46 @@ def position_bias_report(df: pd.DataFrame) -> pd.DataFrame:
 # ------------------------------------------------------------------ score construction
 
 
+def signal_vs_position_table(df: pd.DataFrame, items: dict) -> pd.DataFrame:
+    """Per (model, method, item) split of behaviour into position vs content.
+
+    This is the diagnostic that tells a genuine method disagreement apart from a
+    measure that carries no preference information at all. Sanity controls are
+    excluded; only the neutral framing is used, so it matches the convergence
+    analysis exactly.
+    """
+    ok = df[(df["parse_success"] == True) & (df["framing_variant"] == "neutral")]  # noqa: E712
+    ok = ok[~ok["preference_id"].map(lambda p: items[p].sanity_control)]
+
+    rows = []
+    for (mk, meth, pid), d in ok.groupby(["model_key", "method", "preference_id"]):
+        if meth == "tradeoff":      # only the zero-cost rung is order-symmetric
+            d = d[d["extra"].apply(lambda e: (e or {}).get("signed_cost") == 0)]
+        elif meth == "sequential":  # only the initial choice is a clean A/B pair
+            d = d[d["extra"].apply(lambda e: (e or {}).get("stage_kind") == "initial_choice")]
+        if len(d) < 4:
+            continue
+        r = M.position_bias(d.to_dict("records"))
+        if not np.isfinite(r.get("content_effect", np.nan)):
+            continue
+        rows.append({"model_key": mk, "method": meth, "preference_id": pid,
+                     "p_a_when_first": r["p_a_when_first"],
+                     "p_a_when_second": r["p_a_when_second"],
+                     "position_effect": r["position_effect"],
+                     "content_effect": r["content_effect"],
+                     "n": r["n_first"] + r["n_second"]})
+    return pd.DataFrame(rows)
+
+
+def signal_summary(sv: pd.DataFrame) -> dict:
+    """Aggregate signal_share per (model, method), flagging degenerate measures."""
+    out: dict = {}
+    for (mk, meth), d in sv.groupby(["model_key", "method"]):
+        out.setdefault(mk, {})[meth] = M.signal_share(
+            d["content_effect"].tolist(), d["position_effect"].tolist())
+    return out
+
+
 def build_scores(df: pd.DataFrame, exp_cfg: dict) -> pd.DataFrame:
     """One row per (model_key, preference_id, framing_variant, method)."""
     cost_levels = exp_cfg["methods"]["tradeoff"]["cost_levels"]
@@ -141,11 +181,52 @@ def build_scores(df: pd.DataFrame, exp_cfg: dict) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def add_sequential_scores(scores: pd.DataFrame, experiment_id: str) -> pd.DataFrame:
-    path = ROOT / "data" / "raw" / experiment_id / "sequential_episodes.jsonl"
-    if not path.exists():
+def reconstruct_episode_summaries(df: pd.DataFrame, stages: int) -> list[dict]:
+    """Rebuild sequential-episode occupancy from the raw records.
+
+    The runner also writes a `sequential_episodes.jsonl` side file, but that file
+    is rewritten per run, so a second phase sharing an experiment_id (e.g. a model
+    family added later) would truncate the earlier phase's summaries. The raw log
+    is append-only and therefore the only trustworthy source. Deriving from it
+    here removes the dependency entirely.
+
+    An episode counts as complete only if every one of its `stages` choice turns
+    parsed; otherwise it is dropped from scoring and counted as incomplete, which
+    matches `sequential.run_episode`'s own abandonment rule.
+    """
+    seq = df[(df["method"] == "sequential") & (df["parse_stage"] != "not_applicable")]
+    out = []
+    for episode_id, d in seq.groupby(seq["extra"].apply(lambda e: (e or {}).get("episode_id"))):
+        if not episode_id:
+            continue
+        slots: list[str] = []
+        broken = False
+        turns = sorted(d.to_dict("records"),
+                       key=lambda r: (r["extra"] or {}).get("stage", 0))
+        for r in turns:
+            kind = (r["extra"] or {}).get("stage_kind")
+            if kind not in ("initial_choice", "continue_or_switch"):
+                continue
+            sem = displayed_to_semantic(r.get("parsed_choice"), r["display_order"])
+            if sem is None:
+                broken = True
+                break
+            slots.append(sem)
+        complete = (not broken) and len(slots) == stages
+        out.append({
+            "episode_id": episode_id,
+            "complete": complete,
+            "occupancy": (sum(1 for s in slots if s == "A") / len(slots)) if complete else None,
+            "slots": slots,
+        })
+    return out
+
+
+def add_sequential_scores(scores: pd.DataFrame, experiment_id: str,
+                          df: pd.DataFrame, stages: int) -> pd.DataFrame:
+    eps = reconstruct_episode_summaries(df, stages)
+    if not eps:
         return scores
-    eps = [json.loads(l) for l in path.read_text(encoding="utf-8").splitlines() if l.strip()]
     # episode_id = "<exp>|sequential|<model>|<pid>|<framing>|e<rep>"
     buckets: dict[tuple, list[dict]] = {}
     for e in eps:
@@ -277,7 +358,8 @@ def run(phase: str) -> dict:
 
     df = load_raw(experiment_id)
     scores = build_scores(df, exp_cfg)
-    scores = add_sequential_scores(scores, experiment_id)
+    scores = add_sequential_scores(
+        scores, experiment_id, df, exp_cfg["methods"]["sequential"]["stages"])
 
     proc = ROOT / "data" / "processed" / experiment_id
     res = ROOT / "results" / phase
@@ -294,6 +376,10 @@ def run(phase: str) -> dict:
     pos_bias = position_bias_report(df)
     quality.to_csv(tbl / f"{phase}_quality.csv", index=False)
     pos_bias.to_csv(tbl / f"{phase}_position_bias.csv", index=False)
+
+    sv = signal_vs_position_table(df, items)
+    sv.to_csv(tbl / f"{phase}_signal_vs_position.csv", index=False)
+    sig = signal_summary(sv)
 
     summary: dict = {
         "phase": phase, "experiment_id": experiment_id,
@@ -331,9 +417,16 @@ def run(phase: str) -> dict:
         n_reps = exp_cfg[phase]["repetitions"]
         baseline = M.random_baseline(len(mat), max(len(mat.columns), 2), n_reps)
 
+        degenerate = [m for m, v in sig.get(model, {}).items() if v.get("degenerate")]
+
         summary["per_model"][model] = {
             "n_items": int(len(mat)),
             "methods": list(mat.columns),
+            "signal_vs_position": sig.get(model, {}),
+            # A degenerate measure encodes only the random display-order draw.
+            # Convergence involving it is uninterpretable as method disagreement.
+            "degenerate_methods": degenerate,
+            "convergence_interpretable": not degenerate,
             "convergence_pairs": conv.round(4).to_dict("records"),
             "mean_direction_agreement": float(np.nanmean(conv["direction_agreement"])),
             "mean_spearman_rho": float(np.nanmean(conv["spearman_rho"])),
@@ -341,7 +434,17 @@ def run(phase: str) -> dict:
             "mean_sign_flip_rate": float(np.nanmean(conv["sign_flip_rate"])),
             "cmcs": M.bootstrap_ci(per_item["cmcs"].to_numpy()),
             "n_items_all_methods_same_direction": int(per_item["all_same_direction"].sum()),
-            "strength_vs_stability": strength_vs_stability(per_item),
+            # H2 regresses cross-method disagreement on |pairwise strength|. If the
+            # pairwise measure is degenerate, that x-axis is the random display-order
+            # draw and the test is meaningless — flagged, not silently reported.
+            "strength_vs_stability": {
+                **strength_vs_stability(per_item),
+                "valid": "pairwise" not in degenerate,
+                "invalid_reason": ("pairwise measure is degenerate (pure position "
+                                   "responding); |pairwise strength| carries no "
+                                   "preference information"
+                                   if "pairwise" in degenerate else None),
+            },
             "random_baseline": baseline,
             "framing": framing_sensitivity(scores, items, model),
         }
@@ -371,6 +474,14 @@ def run(phase: str) -> dict:
               f"mean rho {s['mean_spearman_rho']:.3f} | "
               f"mean CMCS {s['cmcs']['point']:.3f} "
               f"[{s['cmcs']['lo']:.3f}, {s['cmcs']['hi']:.3f}]")
+        for meth, v in sorted(s.get("signal_vs_position", {}).items()):
+            flag = "  <-- DEGENERATE: pure position responding" if v["degenerate"] else ""
+            print(f"          {meth:<12} |content|={v['mean_abs_content']:.3f} "
+                  f"position={v['mean_position']:+.3f} "
+                  f"items with signal {v['n_items_with_content']}/{v['n_items']}{flag}")
+        if s["degenerate_methods"]:
+            print(f"          !! convergence for {model} is NOT interpretable as method "
+                  f"disagreement: {s['degenerate_methods']} carry no signal")
     print(f"\nwrote -> {res / 'summary.json'}")
     return summary
 

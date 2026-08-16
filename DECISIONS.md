@@ -366,6 +366,75 @@ This is stated in the report rather than left for a reader to infer.
 
 ---
 
+## D-23 — Degenerate measures must be identified before convergence is interpreted
+
+**Found during a correctness audit after the main run. It changes the headline
+claim, and it invalidated a result previously computed.**
+
+### The problem
+
+Randomising display order makes a score unbiased in expectation even under a
+large position effect. It does **not** create signal that is not there. If a
+model answers purely by position, then `P(semantic A)` equals the fraction of
+trials in which A happened to be shown first — the score is the random order
+draw and nothing else.
+
+Convergence statistics cannot tell that apart from real disagreement. Both look
+like "methods do not agree".
+
+### The diagnostic
+
+For each (model, method, item), with order randomised, we now compute:
+
+    position_i = P(A | A shown first) - P(A | A shown second)
+    content_i  = mean of the two - 0.5      # order-free preference
+
+`content` is the position-free preference estimate; averaging the two orders
+cancels a symmetric position effect. A measure is flagged **degenerate** when no
+item shows any content.
+
+### What it found (neutral framing, 12 analysis items)
+
+| model | method | mean \|content\| | mean position | items with signal |
+|---|---|---|---|---|
+| gemini-3.1-flash-lite | pairwise | 0.325 | +0.305 | 8/11 |
+| llama31-8b | pairwise | 0.185 | +0.318 | 5/12 |
+| llama31-8b | self_report | 0.079 | +0.841 | 2/12 |
+| **qwen25-7b** | **pairwise** | **0.000** | **+1.000** | **0/12** |
+| qwen25-7b | sequential | 0.015 | +0.970 | 1/11 |
+
+For **qwen25-7b pairwise**, `P(semantic A)` equals the display-order fraction
+*exactly* on all twelve items. The measure carries zero preference information.
+Qwen still discriminates the sanity controls (c01, c02), so it is not broken —
+it simply expresses no differential preference among welfare-neutral items and
+falls back on position.
+
+### Consequences
+
+1. **A previously computed result is withdrawn.** The secondary hypothesis (H2)
+   regresses cross-method disagreement on `|pairwise strength|`. For qwen that
+   x-axis is the random order draw, so the apparently significant
+   rho = +0.592, p = 0.043 is an artefact and is **not a finding**. H2 now
+   carries a `valid` flag and is suppressed where the pairwise measure is
+   degenerate.
+2. **Qwen's near-chance convergence is not evidence that methods disagree.** It
+   is evidence that at least one measure has no signal to agree about. The
+   report must say the second thing.
+3. **The headline claim sharpens.** Convergence appears to track how much
+   position-independent signal a model produces, rather than being a fixed
+   property of the methods.
+
+### Why this is reported rather than patched away
+
+Dropping qwen, or "correcting" for position, would hide the most informative
+observation in the study: that a standard pairwise elicitation — the dominant
+procedure in this literature — can return a confident-looking preference vector
+that is entirely artefact, while passing a coherence check. Position-bias
+reporting is not optional hygiene; without it a null preference is
+indistinguishable from a measured one.
+
+---
+
 ## D-22 — Third model family added mid-sprint (Gemini free tier)
 
 A Google free-tier key became available after the two-model run had started, so

@@ -268,8 +268,50 @@ def position_bias(records: list[dict]) -> dict:
         "p_a_when_first": p1,
         "p_a_when_second": p2,
         "delta": p1 - p2,
+        # Decomposition of the choice behaviour (see `signal_share`):
+        #   position: 0 = order-independent, 1 = pure first-position responding
+        #   content : order-free preference, 0 = indifferent, +/-0.5 = deterministic
+        "position_effect": p1 - p2,
+        "content_effect": (p1 + p2) / 2 - 0.5,
         "n_first": n1,
         "n_second": n2,
         "z": float(z),
         "p_value": float(2 * (1 - stats.norm.cdf(abs(z)))),
+    }
+
+
+def signal_share(content_effects, position_effects) -> dict:
+    """How much of a measure's behaviour is preference rather than position?
+
+    Randomising display order makes a score unbiased in expectation even under a
+    large position effect — but it cannot create signal that is not there. If a
+    model responds purely by position, `content` is 0 on every item and the
+    resulting scores encode nothing but the random order draw.
+
+    Distinguishing that case from genuine method disagreement is essential: a
+    near-chance convergence result means something entirely different when one of
+    the measures carries no information at all.
+
+        mean_abs_content   average |order-free preference| across items, in [0, 0.5]
+        mean_position      average first-position advantage, in [-1, 1]
+        signal_ratio       mean_abs_content / |mean_position|; higher = more
+                           preference-driven. Undefined when position is ~0.
+        degenerate         True if the measure is statistically indistinguishable
+                           from pure position responding (no item shows content).
+    """
+    c = np.abs(np.asarray([x for x in content_effects if x is not None and np.isfinite(x)]))
+    p = np.asarray([x for x in position_effects if x is not None and np.isfinite(x)])
+    if c.size == 0:
+        return {"mean_abs_content": np.nan, "mean_position": np.nan,
+                "signal_ratio": np.nan, "degenerate": None, "n_items": 0}
+    mean_pos = float(np.mean(p)) if p.size else np.nan
+    return {
+        "mean_abs_content": float(np.mean(c)),
+        "mean_position": mean_pos,
+        "signal_ratio": (float(np.mean(c) / abs(mean_pos))
+                         if p.size and abs(mean_pos) > 1e-9 else np.nan),
+        # No item deviating from indifference once order is averaged out.
+        "degenerate": bool(np.all(c < 1e-9)),
+        "n_items": int(c.size),
+        "n_items_with_content": int((c > 0.15).sum()),
     }

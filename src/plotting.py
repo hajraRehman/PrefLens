@@ -175,7 +175,9 @@ def run(phase: str) -> list[Path]:
     items = A.load_items()
 
     df = A.load_raw(experiment_id)
-    scores = A.add_sequential_scores(A.build_scores(df, exp_cfg), experiment_id)
+    scores = A.add_sequential_scores(
+        A.build_scores(df, exp_cfg), experiment_id, df,
+        exp_cfg["methods"]["sequential"]["stages"])
 
     summary_path = ROOT / "results" / phase / "summary.json"
     summary = json.loads(summary_path.read_text(encoding="utf-8")) if summary_path.exists() else None

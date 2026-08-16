@@ -355,9 +355,15 @@ def run_phase(phase: str, assume_yes: bool, dry_run: bool, override_models: list
                 summaries.append(summary)
 
         if summaries:
-            (out_dir / "sequential_episodes.jsonl").write_text(
-                "\n".join(json.dumps(s) for s in summaries) + "\n", encoding="utf-8"
-            )
+            # APPEND, never overwrite. Several phases can share an experiment_id
+            # (a model family added later writes into the same directory), and
+            # truncating here would destroy the earlier phase's summaries.
+            # This file is a convenience artefact only: the analysis reconstructs
+            # episode occupancy from the append-only raw log, which is the source
+            # of truth (see analysis.reconstruct_episode_summaries).
+            with (out_dir / "sequential_episodes.jsonl").open("a", encoding="utf-8") as fh:
+                for s in summaries:
+                    fh.write(json.dumps(s) + "\n")
     finally:
         writer.close()
 

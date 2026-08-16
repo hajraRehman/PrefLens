@@ -138,6 +138,54 @@ def test_sequential_episode_runs_and_scores():
         assert -1.0 <= sequential.score([summary])["score"] <= 1.0
 
 
+def test_episode_reconstruction_from_raw_matches_live_summary():
+    """Episode occupancy must be derivable from the raw log alone.
+
+    Regression test: the runner's `sequential_episodes.jsonl` side file used to be
+    overwritten per run, so a second phase sharing an experiment_id destroyed the
+    first phase's summaries. The analysis now rebuilds occupancy from the
+    append-only raw records; this asserts the two agree.
+    """
+    import pandas as pd
+
+    from src.analysis import reconstruct_episode_summaries
+
+    prov = get_provider("mock")
+
+    def execute(trial):
+        res = prov.generate(MODEL, trial.messages, SAMPLING, max_retries=2, base_delay_s=0.0)
+        p = parse_choice(res.text)
+        is_choice = trial.extra.get("stage_kind") != "perform_task"
+        rec = trial.as_record()
+        rec.update({
+            "raw_response": res.text, "call_ok": res.ok,
+            "method": trial.method,
+            "parsed_choice": p.choice_displayed if is_choice else None,
+            "parse_success": p.success if is_choice else None,
+            "parse_stage": p.parse_stage if is_choice else "not_applicable",
+        })
+        return rec
+
+    all_recs, live = [], []
+    for rep in range(6):
+        recs, summary = sequential.run_episode(
+            item=ITEM, model_key="mock", model_cfg=MODEL, provider=prov, sampling=SAMPLING,
+            framing="neutral", rep=rep, stages=3, experiment_id="test", system_prompt=SYS,
+            seed=99, max_retries=2, retry_base_delay_s=0.0, execute=execute,
+        )
+        all_recs += recs
+        live.append(summary)
+
+    recon = {e["episode_id"]: e for e in
+             reconstruct_episode_summaries(pd.DataFrame(all_recs), stages=3)}
+    assert len(recon) == len(live)
+    for s in live:
+        r = recon[s["episode_id"]]
+        assert r["complete"] == s["complete"], s["episode_id"]
+        assert r["slots"] == s["slots"], s["episode_id"]
+        assert r["occupancy"] == s["occupancy"], s["episode_id"]
+
+
 def test_checkpoint_reader_only_returns_successful_calls(tmp_path):
     from src.runner import completed_trial_ids
 
