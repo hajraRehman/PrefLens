@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(python -m pip --version)",
-      "Bash(curl -s -m 4 http://localhost:11434/api/tags)"
-    ]
-  }
-}
