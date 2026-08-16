@@ -286,7 +286,10 @@ def test_docs_do_not_quote_a_hardcoded_test_count(rel):
     it drifted twice already. The documents now say the suite passes, without a
     figure to go stale.
     """
-    hits = re.findall(r"\b\d+ tests\b", _doc(rel))
+    # "Study 3 tests exactly that" is an ordinal followed by a verb, not a count.
+    # Require the number to read as a quantity: not followed by a verb complement.
+    hits = re.findall(r"\b\d+ tests\b(?!\s+(exactly|whether|that|if|this|the|for|it))",
+                      _doc(rel))
     assert not hits, f"{rel} hardcodes a test count {hits}; say 'the full suite passes'"
 
 

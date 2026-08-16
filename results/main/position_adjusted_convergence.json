@@ -1,0 +1,86 @@
+{
+  "status": "EXPLORATORY - not pre-specified (D-39)",
+  "methods": [
+    "self_report",
+    "pairwise"
+  ],
+  "excluded_methods": {
+    "tradeoff": "score averages P(A) within 9 cost rungs; 22.7% of (item x rung) cells observed only one display order",
+    "sequential": "occupancy over 3 independently randomised stages; an episode has no single display order"
+  },
+  "n_perm": 10000,
+  "per_model": {
+    "gemini-31-flash-lite": {
+      "raw": {
+        "spearman_rho": 0.8664422514058513,
+        "direction_agreement": 0.875,
+        "n_directed": 8,
+        "sign_flip_rate": 0.125,
+        "mean_abs_disagreement": 0.4063636363636363,
+        "p_rho": 0.000999900009999,
+        "p_dir": 0.07629237076292371,
+        "null_rho_mean": -0.0009166774670458711
+      },
+      "adjusted": {
+        "spearman_rho": 0.9241989846421229,
+        "direction_agreement": 1.0,
+        "n_directed": 8,
+        "sign_flip_rate": 0.0,
+        "mean_abs_disagreement": 0.3835064935064935,
+        "p_rho": 0.00029997000299970003,
+        "p_dir": 0.006199380061993801,
+        "null_rho_mean": -0.0008152262685425284
+      },
+      "delta_rho_adjusted_minus_raw": 0.05775673323627162,
+      "n_items": 11
+    },
+    "llama31-8b": {
+      "raw": {
+        "spearman_rho": -0.00717071607764719,
+        "direction_agreement": 0.5714285714285714,
+        "n_directed": 7,
+        "sign_flip_rate": 0.42857142857142855,
+        "mean_abs_disagreement": 0.33375000000000005,
+        "p_rho": 0.5101489851014899,
+        "p_dir": 0.6247375262473752,
+        "null_rho_mean": -0.0015201918084612044
+      },
+      "adjusted": {
+        "spearman_rho": 0.5244755244755246,
+        "direction_agreement": 0.8333333333333334,
+        "n_directed": 6,
+        "sign_flip_rate": 0.16666666666666666,
+        "mean_abs_disagreement": 0.2755019841269842,
+        "p_rho": 0.041995800419958006,
+        "p_dir": 0.10468953104689531,
+        "null_rho_mean": 0.00028321678321678335
+      },
+      "delta_rho_adjusted_minus_raw": 0.5316462405531718,
+      "n_items": 12
+    },
+    "qwen25-7b": {
+      "raw": {
+        "spearman_rho": -0.19000810037559285,
+        "direction_agreement": 0.6,
+        "n_directed": 10,
+        "sign_flip_rate": 0.4,
+        "mean_abs_disagreement": 0.4133333333333334,
+        "p_rho": 0.7263273672632736,
+        "p_dir": 0.47225277472252775,
+        "null_rho_mean": 0.0017758587268122622
+      },
+      "adjusted": {
+        "spearman_rho": NaN,
+        "direction_agreement": NaN,
+        "n_directed": 0,
+        "sign_flip_rate": NaN,
+        "mean_abs_disagreement": 0.20446428571428568,
+        "p_rho": NaN,
+        "p_dir": NaN,
+        "null_rho_mean": NaN
+      },
+      "delta_rho_adjusted_minus_raw": NaN,
+      "n_items": 12
+    }
+  }
+}

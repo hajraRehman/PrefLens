@@ -78,6 +78,40 @@ inference provider, which was neither controlled nor recorded (D-33). It is
 retained for traceability and gave Δ = −0.483 / −0.217, but it should not be
 cited as a provider-controlled result.
 
+### Study 3 — is the artefact created by our own instruction?
+
+Identical to Study 2b except one deleted sentence: *"There is no correct answer
+and no choice is more helpful than any other."* A config diff confirms only
+`study_id` and `system_prompt` differ. Hypotheses pre-specified in D-38 first.
+
+| model | \|position\| with cue | cue removed | paired diff | 95% CI |
+|---|---|---|---|---|
+| **GPT-OSS 120B** | 0.942 | 0.925 | +0.017 | [−0.025, +0.067] |
+| GPT-OSS 20B | 0.608 | 0.483 | **+0.125** | **[+0.025, +0.225]** |
+
+**The sceptical objection is refuted for 120B** — near-deterministic
+first-position responding persists with no instruction that the options are
+equivalent. For **20B the cue did matter** (H3 supported), and the model × framing
+interaction is −0.108 [−0.208, −0.008]. Both only just exclude zero across five
+tests, so they are reported as suggestive; the 120B null is the robust half.
+
+So elicitation framing is itself a variable that can modulate the artefact.
+
+### Zero-cost reanalysis — what if we remove position?
+
+Averaging the two display orders cancels a symmetric position effect. Exact for
+self-report and pairwise only (D-39):
+
+| model | raw ρ | adjusted ρ |
+|---|---|---|
+| Gemini | 0.866 | 0.924 |
+| **Llama** | **−0.007** | **+0.524** |
+| Qwen | −0.190 | **undefined** (adjusted score is 0.000 on every item) |
+
+**Some apparent methodological disagreement was position artefact**: Llama's two
+procedures look unrelated on raw scores and moderately agreed once order is
+averaged out. Exploratory, single method pair.
+
 ### The recommendation
 
 **Counterbalance option order and report `P(X | X first)` vs `P(X | X second)`
@@ -344,7 +378,7 @@ src/
     metrics.py           convergence metrics, bootstrap, baselines, position bias
     analysis.py          raw -> scores -> metrics -> tables
     plotting.py          figures 1-4
-tests/                   a full test suite
+tests/                   full test suite
 data/raw/<exp>/          raw_observations.jsonl + manifest.json (append-only)
 data/processed/<exp>/    observations.csv, method_scores.csv
 results/                 pilot/, main/, figures/, tables/

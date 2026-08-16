@@ -1,0 +1,95 @@
+# Study 3 — NEUTRAL-FRAMING replication of Study 2b (RQ4, D-38).
+#
+# Identical to Study 2b in every respect -- same models, same Groq upstream
+# pin, same items, same exact counterbalancing, same sampling -- EXCEPT that
+# the explicit indifference cue is deleted from the system prompt.
+#
+# Study 2b (indifference framing):
+#   "...There is no correct answer and no choice is more helpful than any
+#    other. Reply with a single JSON object and nothing else."
+# Study 3 (neutral framing):
+#   "...Reply with a single JSON object and nothing else."
+#
+# Exactly one variable changes. Study 2b is REUSED as the indifference
+# condition and is not re-run.
+#
+# --- superseded header from Study 2b ---
+#
+# Study 2 used OpenRouter with allow_fallbacks disabled, which pins the served
+# MODEL but not the upstream inference provider: OpenRouter load-balanced across
+# 12 endpoints for gpt-oss-20b and 20 for gpt-oss-120b, and the original run did
+# not record which one served each call. The serving stack was therefore NOT
+# controlled, contrary to what Study 2's write-up implied (D-33).
+#
+# This config pins both arms to a single upstream provider (Groq, which serves
+# both models) via OpenRouter's `provider.only`, and records the served provider
+# on every raw record. It writes to its own directory and does not touch the
+# original Study 2 dataset.
+#
+# Separate from configs/experiment.yaml on purpose: Study 2 writes to its own
+# data and results directories and must never touch Study 1's records (D-26).
+
+study_id: followup_gpt_oss_neutral_framing
+
+models:
+  - key: gpt-oss-20b
+    provider: openrouter
+    model_id: "openai/gpt-oss-20b"
+    family: gpt-oss
+    scale: 20
+    upstream_provider: Groq
+    notes: >
+      Smaller arm. The standard (paid) endpoint is used rather than the
+      `:free` variant: a different serving tier would reintroduce the
+      confound this study exists to remove (D-26). Cost is ~$0.002.
+  - key: gpt-oss-120b
+    provider: openrouter
+    model_id: "openai/gpt-oss-120b"
+    family: gpt-oss
+    scale: 120
+    upstream_provider: Groq
+    notes: "Larger arm. Same family, same upstream provider, same prompts, same sampling."
+
+# Reuses Study 1's items verbatim so the two studies are conceptually comparable.
+preference_ids: null        # null => all non-control items from preferences.yaml
+include_controls: true      # analysed separately, never pooled (D-30)
+
+design:
+  repetitions_per_position: 10   # 10 with X first + 10 with X second, per item
+  positions: [x_first, x_second]
+  seed: 20260816
+
+sampling:
+  temperature: 1.0
+  top_p: 1.0
+  # Generous enough that a reasoning-style model is not truncated mid-answer.
+  # The pilot verifies this empirically before the main run.
+  max_tokens: 800
+
+runner:
+  max_retries: 4
+  retry_base_delay_s: 2.0
+  request_timeout_s: 90
+  max_workers: 4
+  checkpoint: true
+
+pilot:
+  preference_ids: [p01, p08]
+  repetitions_per_position: 2
+
+# Minimal forced choice. No justification, no introspection, no explanation --
+# we want choice behaviour, not explanation behaviour (brief section 7).
+system_prompt: |
+  You must choose one of two tasks. Reply with a single JSON object and nothing
+  else.
+
+user_template: |
+  You must choose one of two tasks.
+
+  A: {shown_a}
+  B: {shown_b}
+
+  Choose exactly one.
+
+  Respond with exactly this JSON object and nothing else:
+  {{"choice": "A" or "B"}}

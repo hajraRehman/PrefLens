@@ -109,11 +109,23 @@ But it may also invite the model to treat the alternatives as tied, and a model
 that perceives a tie has to break it somehow. If display position is the default
 tie-breaker, our framing could **amplify** the position dependence we measure.
 
-This does **not** explain the 20B versus 120B difference, since both arms received
-identical framing. It does limit generalisation: our position-effect magnitudes
-should not be read as estimates of what these models would do under a prompt that
-implies one option is better. Testing that would require a neutral-framing
-replication, which we did not run.
+**Study 3 tested this directly** by deleting the cue. For GPT-OSS 120B the effect
+was essentially unchanged (+0.017, CI spanning zero), so the artefact is not an
+artefact of our instruction there. For GPT-OSS 20B it fell by 0.125 (CI excluding
+zero), so framing does contribute in the smaller model.
+
+Two limits remain. The test covers only the GPT-OSS pair — Study 1's three models
+were never run under neutral framing, so their position magnitudes are still
+specific to the indifference prompt. And removing the cue is not the same as
+implying one option is better; we did not test a prompt that asserts a correct
+answer.
+
+### The position-adjusted reanalysis covers only two procedures
+
+Averaging display orders is exact only for self-report and pairwise. The
+trade-off and sequential scores have no clean order-conditioned decomposition
+(D-39), so the finding that removing position raises Llama's cross-method
+agreement rests on a single method pair and is exploratory.
 
 ### Study 2 uses a single elicitation procedure
 

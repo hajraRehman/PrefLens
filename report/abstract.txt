@@ -2,17 +2,17 @@ No Signal, No Convergence: Position Artefacts in LLM Preference Elicitation
 
 LLM preference measurement has no direct ground truth, so convergent validity
 across elicitation procedures is one useful source of evidence about measurement
-consistency. Study 1 applied four distinct procedures -- self-report, repeated
-pairwise choice, a cost trade-off, and sequential task selection -- to 12
-welfare-neutral task pairs across three model families (4,013 trial records).
-Against a matched permutation null, only Gemini-3.1-flash-lite converged above
-chance (p = 0.0019); Qwen-2.5-7B did not (p = 0.2736), and its pairwise scores
-reproduced the display-order draw exactly on all 12 items while still passing
-validity controls. Study 2 asked whether scale reduces positional susceptibility
-within one family, using exact counterbalancing. It does not: GPT-OSS 120B was
-more position-dominated than 20B, and this replicated when both arms were pinned
-to one upstream provider (Delta = -0.333 [-0.492, -0.192]). Preference studies should
-counterbalance option order and report position-conditioned rates. Convergence
-establishes no claim about genuine preference.
+consistency. Study 1 applied four distinct procedures to 12 welfare-neutral task
+pairs across three model families (4,013 trial records). Against a matched
+permutation null, only Gemini-3.1-flash-lite converged above chance (p = 0.0019);
+Qwen-2.5-7B's pairwise scores reproduced the display-order draw exactly on all 12
+items. Removing position by averaging display orders raised Llama's
+self-report/pairwise agreement from rho = -0.007 to +0.524, so some apparent
+methodological disagreement was position artefact. Study 2 (exact
+counterbalancing, provider-pinned) found the larger GPT-OSS model *more*
+position-dominated (Delta = -0.333), rejecting our pre-specified hypothesis; Study 3
+showed this persists after deleting the prompt's indifference cue for 120B, while
+20B became less position-driven. Preference studies should counterbalance option
+order and report position-conditioned rates.
 
-[149 words]
+[137 words]

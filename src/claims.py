@@ -165,6 +165,40 @@ def build() -> dict:
             claims[f"s2b_{tag}_delta"] = _claim(
                 round(v["diff"], 3), f"{abs(v['diff']):.3f}", [REPORT, README])
 
+    # ------------------------------------------- Study 3 (neutral framing, RQ4)
+    fc = ROOT / "results" / "followup_neutral" / "statistics" / "framing_comparison.json"
+    if fc.exists():
+        d = json.loads(fc.read_text(encoding="utf-8"))
+        for mk, short in (("gpt-oss-20b", "20b"), ("gpt-oss-120b", "120b")):
+            v = d["per_model"][mk]
+            claims[f"s3_{short}_position_neutral"] = _claim(
+                round(v["mean_abs_position_neutral"], 3),
+                f"{v['mean_abs_position_neutral']:.3f}", [REPORT, README])
+            claims[f"s3_{short}_h3_delta"] = _claim(
+                round(v["H3_delta_position"]["diff"], 3),
+                f"{v['H3_delta_position']['diff']:+.3f}".replace("+", "+"),
+                [REPORT, README], "indifference minus neutral; predicted > 0")
+        it = d.get("interaction_position")
+        if it:
+            claims["s3_interaction_position"] = _claim(
+                round(it["diff"], 3), f"{abs(it['diff']):.3f}", [REPORT, README],
+                "model x framing interaction on |position|")
+
+    # ------------------------------- position-adjusted convergence (exploratory)
+    pa = ROOT / "results" / "main" / "position_adjusted_convergence.json"
+    if pa.exists():
+        d = json.loads(pa.read_text(encoding="utf-8"))
+        for mk, short in (("gemini-31-flash-lite", "gemini"), ("llama31-8b", "llama")):
+            v = d["per_model"].get(mk)
+            if not v:
+                continue
+            claims[f"adj_{short}_rho_raw"] = _claim(
+                round(v["raw"]["spearman_rho"], 3),
+                f"{v['raw']['spearman_rho']:.3f}", [REPORT, README])
+            claims[f"adj_{short}_rho_adjusted"] = _claim(
+                round(v["adjusted"]["spearman_rho"], 3),
+                f"{v['adjusted']['spearman_rho']:.3f}", [REPORT, README])
+
     # --------------------------------------------------------- model counts
     import yaml
     m1 = yaml.safe_load((ROOT / "configs" / "models.yaml").read_text(encoding="utf-8"))["models"]

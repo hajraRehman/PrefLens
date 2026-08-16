@@ -288,6 +288,87 @@
     ],
     "note": ""
   },
+  "s3_20b_position_neutral": {
+    "value": 0.483,
+    "text": "0.483",
+    "documents": [
+      "report/report.md",
+      "README.md"
+    ],
+    "note": ""
+  },
+  "s3_20b_h3_delta": {
+    "value": 0.125,
+    "text": "+0.125",
+    "documents": [
+      "report/report.md",
+      "README.md"
+    ],
+    "note": "indifference minus neutral; predicted > 0"
+  },
+  "s3_120b_position_neutral": {
+    "value": 0.925,
+    "text": "0.925",
+    "documents": [
+      "report/report.md",
+      "README.md"
+    ],
+    "note": ""
+  },
+  "s3_120b_h3_delta": {
+    "value": 0.017,
+    "text": "+0.017",
+    "documents": [
+      "report/report.md",
+      "README.md"
+    ],
+    "note": "indifference minus neutral; predicted > 0"
+  },
+  "s3_interaction_position": {
+    "value": -0.108,
+    "text": "0.108",
+    "documents": [
+      "report/report.md",
+      "README.md"
+    ],
+    "note": "model x framing interaction on |position|"
+  },
+  "adj_gemini_rho_raw": {
+    "value": 0.866,
+    "text": "0.866",
+    "documents": [
+      "report/report.md",
+      "README.md"
+    ],
+    "note": ""
+  },
+  "adj_gemini_rho_adjusted": {
+    "value": 0.924,
+    "text": "0.924",
+    "documents": [
+      "report/report.md",
+      "README.md"
+    ],
+    "note": ""
+  },
+  "adj_llama_rho_raw": {
+    "value": -0.007,
+    "text": "-0.007",
+    "documents": [
+      "report/report.md",
+      "README.md"
+    ],
+    "note": ""
+  },
+  "adj_llama_rho_adjusted": {
+    "value": 0.524,
+    "text": "0.524",
+    "documents": [
+      "report/report.md",
+      "README.md"
+    ],
+    "note": ""
+  },
   "total_models": {
     "value": 5,
     "text": "5",

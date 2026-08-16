@@ -1,0 +1,64 @@
+{
+  "hypotheses": "D-38, pre-specified before Study 3 data collection",
+  "H3": "removing the indifference cue REDUCES mean |position| (predicted diff > 0)",
+  "H4": "removing it INCREASES mean |content| (predicted diff > 0)",
+  "n_boot": 10000,
+  "per_model": {
+    "gpt-oss-120b": {
+      "n_items": 12,
+      "mean_abs_position_indifference": 0.9416666666666668,
+      "mean_abs_position_neutral": 0.9249999999999999,
+      "mean_abs_content_indifference": 0.05833333333333331,
+      "mean_abs_content_neutral": 0.07499999999999998,
+      "H3_delta_position": {
+        "diff": 0.01666666666666683,
+        "lo": -0.025000000000000022,
+        "hi": 0.06666666666666654,
+        "n_items": 12,
+        "p_two_sided_sign": 0.5526
+      },
+      "H3_supported": false,
+      "H4_delta_content": {
+        "diff": 0.01666666666666667,
+        "lo": -0.024999999999999994,
+        "hi": 0.06666666666666664,
+        "n_items": 12,
+        "p_two_sided_sign": 0.4664
+      },
+      "H4_supported": false
+    },
+    "gpt-oss-20b": {
+      "n_items": 12,
+      "mean_abs_position_indifference": 0.6083333333333334,
+      "mean_abs_position_neutral": 0.48333333333333334,
+      "mean_abs_content_indifference": 0.2083333333333333,
+      "mean_abs_content_neutral": 0.31666666666666665,
+      "H3_delta_position": {
+        "diff": 0.12500000000000006,
+        "lo": 0.025000000000000244,
+        "hi": 0.22500000000000003,
+        "n_items": 12,
+        "p_two_sided_sign": 0.0096
+      },
+      "H3_supported": true,
+      "H4_delta_content": {
+        "diff": 0.10833333333333336,
+        "lo": -0.01666666666666669,
+        "hi": 0.23333333333333334,
+        "n_items": 12,
+        "p_two_sided_sign": 0.0962
+      },
+      "H4_supported": false
+    }
+  },
+  "interaction_position": {
+    "definition": "framing effect on |position| for gpt-oss-120b minus that for gpt-oss-20b",
+    "diff": -0.10833333333333335,
+    "lo": -0.20833333333333334,
+    "hi": -0.008333333333333352
+  },
+  "verdicts": [
+    "gpt-oss-120b: H3 not supported, H4 not supported",
+    "gpt-oss-20b: H3 SUPPORTED, H4 not supported"
+  ]
+}

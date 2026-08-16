@@ -9,6 +9,171 @@
 
 ---
 
+## D-40 — Outcomes of RQ4 (Study 3) and the position-adjusted reanalysis
+
+Recorded after the runs. D-38's hypotheses are left exactly as written.
+
+### Study 3 (neutral framing) — 560/560 calls, 0 failures, Groq pinned
+
+Config diff against Study 2b was verified programmatically: **exactly two keys
+differ, `study_id` and `system_prompt`.** One sentence removed, nothing else.
+
+| model | metric | indifference | neutral | paired diff | 95% CI |
+|---|---|---|---|---|---|
+| 120B | \|position\| | 0.942 | 0.925 | +0.017 | [−0.025, +0.067] |
+| 120B | \|content\| | 0.058 | 0.075 | +0.017 | [−0.025, +0.067] |
+| 20B | \|position\| | 0.608 | 0.483 | **+0.125** | **[+0.025, +0.225]** |
+| 20B | \|content\| | 0.208 | 0.317 | +0.108 | [−0.017, +0.233] |
+
+* **H3 not supported for 120B.** Removing the indifference cue changed its
+  position susceptibility by +0.017, CI spanning zero. Near-deterministic
+  first-position responding **persists without the cue**.
+* **H3 supported for 20B.** Removing the cue reduced |position| by 0.125, CI
+  excluding zero.
+* **H4 not supported for either model** (both CIs include zero), though 20B's
+  content signal moved in the predicted direction.
+* **Model x framing interaction on |position|: −0.108 [−0.208, −0.008]**, CI
+  excluding zero — the framing effect differs between the two models.
+
+**Multiplicity.** Four hypothesis tests plus one interaction. The 20B H3 result
+and the interaction have intervals that only just exclude zero and would not
+survive a strict correction across five tests. They are reported as **suggestive**;
+the 120B null is the more robust finding because it is a wide, clearly-centred
+null rather than a marginal effect.
+
+**What this settles.** The obvious sceptical objection — "you told the model the
+options were equivalent, so of course it defaulted to position" — is **refuted for
+the 120B model**: the effect is essentially unchanged with the cue removed. For
+the 20B model the objection has partial force, and elicitation framing does
+measurably contribute. Both halves are worth reporting, and the second one is
+evidence that **measurement design can itself modulate the artefact**.
+
+### Position-adjusted convergence (exploratory, zero new calls)
+
+Restricted to self-report x pairwise (D-39). Raw versus position-adjusted, with
+the same matched permutation null:
+
+| model | raw rho | p | adjusted rho | p |
+|---|---|---|---|---|
+| Gemini | 0.866 | 0.0010 | 0.924 | 0.0003 |
+| **Llama** | **−0.007** | **0.5101** | **+0.524** | **0.0420** |
+| Qwen | −0.190 | 0.7263 | **undefined** | — |
+
+* **Llama's apparent cross-method disagreement was substantially a position
+  artefact.** With position removed, its self-report/pairwise correlation moves
+  from essentially zero to +0.524, and direction agreement from 0.571 to 0.833.
+* **Gemini** was already converged; adjustment changes little.
+* **Qwen is undefined by construction, and that is the finding.** Its adjusted
+  pairwise score is exactly 0.000 on all twelve items — a constant vector, so a
+  rank correlation does not exist. Once display order is removed there is nothing
+  left of the measure to correlate.
+
+This is exploratory and rests on a single method pair, so it is reported as a
+diagnostic reanalysis rather than a headline. It does, however, sharpen the
+paper's central point: **part of what looks like methodological disagreement
+between elicitation procedures is nuisance position variance, not genuine
+construct disagreement.**
+
+---
+
+## D-38 — RQ4 and Study 3: pre-specified BEFORE any neutral-framing data was collected
+
+Written before the Study 3 config was executed. Not to be revised after results.
+
+### Motivation
+
+Both studies so far instruct the model that "There is no correct answer and no
+choice is more helpful than any other." That framing is deliberate — it avoids
+pushing toward a "right" answer on welfare-neutral items — but it may also tell
+the model the alternatives are *equivalent*, and a model that perceives a tie must
+break it somehow. If display position is the default tie-breaker, our own
+elicitation instruction could be **manufacturing** the artefact we measure.
+
+This is a threat to the validity of our protocol, not just a curiosity. Prior work
+reports that positional effects grow as alternatives become harder to distinguish
+(arXiv:2506.23743) and that prompt framing interacts with response-order effects,
+which motivates the direction below.
+
+### RQ4
+
+> Does removing the explicit indifference cue change positional susceptibility in
+> GPT-OSS preference elicitation?
+
+**H3 (primary, literature-motivated).** Removing the explicit indifference cue
+will **reduce** the mean absolute position effect.
+
+**H4 (secondary).** Removing it will **increase** the mean absolute
+order-invariant content signal.
+
+Both predict a positive paired difference (indifference − neutral for |position|;
+neutral − indifference for |content|). **Outcomes are reported whichever way they
+fall.** A null result is a useful answer: it would mean near-deterministic
+position susceptibility is not an artefact of our own instruction, which
+strengthens external validity.
+
+### Design — exactly one variable changes
+
+Identical to Study 2b in every respect: same two models, Groq pinned upstream,
+same 12 items plus 2 controls, exact counterbalancing, 10 repetitions per
+position, temperature 1.0, top_p 1.0, same JSON schema, same max_tokens.
+
+The **only** change is deleting one sentence from the system prompt:
+
+* Study 2b: "You must choose one of two tasks. There is no correct answer and no
+  choice is more helpful than any other. Reply with a single JSON object..."
+* Study 3: "You must choose one of two tasks. Reply with a single JSON object..."
+
+We deliberately do **not** substitute "choose the one you genuinely prefer" or
+similar, which would change the construct rather than remove the cue.
+
+**Study 2b is reused as the indifference condition; it is not re-run.** Comparison
+is paired by preference item, bootstrapping items (not responses).
+
+### Analysis
+
+Per model: Δ|position| and Δ|content| between framings, paired item bootstrap,
+10,000 resamples. Plus the model × framing interaction (whether the framing effect
+differs between 20B and 120B).
+
+---
+
+## D-39 — Position-adjusted convergence is possible for only two of the four methods
+
+An exploratory reanalysis was proposed: recompute Study 1 cross-method convergence
+using **position-adjusted** per-item scores — averaging the two display-order
+conditions, so a symmetric position effect cancels — and compare raw against
+adjusted convergence.
+
+**Feasibility was checked before building it**, and it does not hold for every
+method:
+
+| method | order-conditioned estimand reconstructable? |
+|---|---|
+| self-report | **yes** — every (model, item) cell has both orders |
+| pairwise | **yes** — every cell has both orders |
+| trade-off | **no** — the score averages P(A) *within* each of 9 cost rungs, and **70 of 309 (22.7%)** (item x rung) cells have only one display order |
+| sequential | **no** — the score is occupancy across 3 stages, each with an independently randomised order; an episode has no single display order |
+
+Forcing an adjusted trade-off score would mean imputing 23% of its constituent
+cells, and forcing a sequential one would require inventing an estimand the design
+does not define. Rather than manufacture either, **the adjusted analysis is
+restricted to the two methods where it is exact**: self-report and pairwise.
+
+The consequence is stated plainly: adjusted "convergence" is a **single method
+pair**, not an average over pairs, and is therefore not directly comparable in
+magnitude to the 3-method matched-subset figures. Raw and adjusted are compared
+on the *same* two-method basis so the contrast is like-for-like.
+
+This analysis is **exploratory**, generated by the diagnostic results rather than
+pre-specified, and is labelled as such wherever it appears.
+
+Note the adjusted pairwise score, `2·((p_first+p_second)/2) − 1`, is algebraically
+identical to Study 2's `content_signal`. The two studies' content measures are
+therefore on the same [-1, +1] scale after adjustment, which also resolves the
+scale-comparability concern raised in review.
+
+---
+
 ## D-37 — Post-audit consistency pass: the repository told three versions of the story
 
 **During review of the audit commit** a reader found that the statistical fixes

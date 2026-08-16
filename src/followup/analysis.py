@@ -32,7 +32,8 @@ STATS = RES / "statistics"
 
 
 CONFIG_FOR = {"followup_gpt_oss": "followup.yaml",
-              "followup_gpt_oss_provider_pinned": "followup_pinned.yaml"}
+              "followup_gpt_oss_provider_pinned": "followup_pinned.yaml",
+              "followup_gpt_oss_neutral_framing": "followup_neutral.yaml"}
 
 
 def load_cfg() -> dict:
@@ -331,7 +332,9 @@ def main() -> None:
     STUDY_ID = a.study_id
     RAW = ROOT / "data" / "raw" / STUDY_ID
     PROC = ROOT / "data" / "processed" / STUDY_ID
-    suffix = "" if STUDY_ID == "followup_gpt_oss" else "_provider_pinned"
+    suffix = {"followup_gpt_oss": "",
+              "followup_gpt_oss_provider_pinned": "_provider_pinned",
+              "followup_gpt_oss_neutral_framing": "_neutral"}[STUDY_ID]
     RES = ROOT / "results" / f"followup{suffix}"
     TABLES = RES / "tables"
     STATS = RES / "statistics"
