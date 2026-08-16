@@ -54,10 +54,11 @@ Hypothesis pre-registered in [DECISIONS.md](DECISIONS.md) (D-27) before any data
 
 **Both hypotheses rejected, in the opposite direction.** The *larger* model was
 more position-dominated (Δ = −0.483 [−0.650, −0.317]) and carried less content
-signal (Δ = −0.217 [−0.325, −0.117]). It returned `p_first = 1.0` on all twelve
-items — yet scored **100% on sanity controls with a position effect of exactly
-zero**, so this is not a comprehension failure. The capability explanation for
-position bias did not survive controlled testing and is retracted.
+signal (Δ = −0.217 [−0.325, −0.117]). It returned `p_first = 1.0` on 11 of 12
+items and chose the first-displayed option on 231/240 trials (96.3%) — yet scored
+**100% on sanity controls with a position effect of exactly zero**, so this is not
+a comprehension failure. The capability explanation for position bias did not
+survive controlled testing and is retracted.
 
 ### The recommendation
 

@@ -52,8 +52,11 @@ before any statistic was computed.
   predicted the larger model would show *more* order-invariant content signal.
   It showed **less**.
 
-`gpt-oss-120b` returned `p_first = 1.0` on **all twelve** balanced items and
-`p_second = 0.0` on nine of them — near-deterministic first-position responding.
+`gpt-oss-120b` returned `p_first = 1.0` on **11 of the 12** balanced items (0.9 on
+the twelfth) and `p_second = 0.0` on **8 of 12** — at the trial level, the
+first-displayed option on **231/240 trials (96.3%)**. Four items (p03, p10, p11,
+p12) kept a small residual content signal, which is why the mean |position effect|
+is 0.925 and not 1.0.
 
 ### The dissociation that rules out the obvious explanation
 

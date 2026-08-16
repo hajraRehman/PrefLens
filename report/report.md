@@ -415,8 +415,11 @@ The larger model was **more** position-dominated and carried **less**
 order-invariant content signal. Both intervals exclude zero, on the wrong side of
 the prediction.
 
-`gpt-oss-120b` returned `p_first = 1.0` on **all twelve** balanced items, and
-`p_second = 0.0` on nine of them: near-deterministic first-position responding.
+`gpt-oss-120b` returned `p_first = 1.0` on **11 of the 12** balanced items (0.9 on
+the twelfth) and `p_second = 0.0` on **8 of 12**; at the trial level it chose the
+first-displayed option on **231 of 240 trials (96.3%)**. The mean |position
+effect| is 0.925 rather than 1.0 because four items (p03, p10, p11, p12) retained
+a small residual content signal.
 Figure C shows this is not driven by a few items — every one of its twelve items
 sits at or above 0.7, far outside the chance band.
 
