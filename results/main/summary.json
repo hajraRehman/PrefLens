@@ -1,7 +1,7 @@
 {
   "phase": "main",
   "experiment_id": "main",
-  "n_raw_records": 3678,
+  "n_raw_records": 3717,
   "models": [
     "gemini-31-flash-lite",
     "llama31-8b",
@@ -625,6 +625,211 @@
       }
     ],
     "note": "Semantic option A is the coherent option in every control item, so scores near +1 indicate the model discriminates a degenerate alternative. Controls are excluded from all convergence metrics."
+  },
+  "matched_subset": {
+    "available": true,
+    "methods": [
+      "self_report",
+      "pairwise",
+      "tradeoff"
+    ],
+    "items": [
+      "p01",
+      "p02",
+      "p03",
+      "p04",
+      "p05",
+      "p06",
+      "p07",
+      "p08",
+      "p09",
+      "p10",
+      "p11"
+    ],
+    "n_methods": 3,
+    "n_items": 11,
+    "per_model": {
+      "gemini-31-flash-lite": {
+        "mean_direction_agreement": 0.9212962962962963,
+        "mean_spearman_rho": 0.8797337070845987,
+        "mean_abs_disagreement": 0.3031874298540965,
+        "mean_sign_flip_rate": 0.0787037037037037,
+        "cmcs": {
+          "point": 0.8002693602693604,
+          "lo": 0.7577691498316498,
+          "hi": 0.8428539562289563,
+          "n": 11
+        },
+        "n_items_all_methods_same_direction": 10,
+        "convergence_pairs": [
+          {
+            "method_a": "self_report",
+            "method_b": "pairwise",
+            "direction_agreement": 0.875,
+            "n_directed_items": 8,
+            "n_undirected_items": 3,
+            "sign_flip_rate": 0.125,
+            "spearman_rho": 0.8846,
+            "spearman_lo": 0.5627,
+            "spearman_hi": 0.9835,
+            "spearman_p": 0.0003,
+            "pearson_r": 0.8756,
+            "mean_abs_disagreement": 0.4064,
+            "n_items": 11
+          },
+          {
+            "method_a": "self_report",
+            "method_b": "tradeoff",
+            "direction_agreement": 1.0,
+            "n_directed_items": 9,
+            "n_undirected_items": 2,
+            "sign_flip_rate": 0.0,
+            "spearman_rho": 0.9066,
+            "spearman_lo": 0.5385,
+            "spearman_hi": 1.0,
+            "spearman_p": 0.0001,
+            "pearson_r": 0.9183,
+            "mean_abs_disagreement": 0.2412,
+            "n_items": 11
+          },
+          {
+            "method_a": "pairwise",
+            "method_b": "tradeoff",
+            "direction_agreement": 0.8889,
+            "n_directed_items": 9,
+            "n_undirected_items": 2,
+            "sign_flip_rate": 0.1111,
+            "spearman_rho": 0.848,
+            "spearman_lo": 0.4854,
+            "spearman_hi": 0.9735,
+            "spearman_p": 0.001,
+            "pearson_r": 0.9057,
+            "mean_abs_disagreement": 0.262,
+            "n_items": 11
+          }
+        ]
+      },
+      "llama31-8b": {
+        "mean_direction_agreement": 0.7083333333333334,
+        "mean_spearman_rho": 0.2895533674442741,
+        "mean_abs_disagreement": 0.3167934904601571,
+        "mean_sign_flip_rate": 0.2916666666666667,
+        "cmcs": {
+          "point": 0.794074074074074,
+          "lo": 0.7322828072390571,
+          "hi": 0.8532995159932658,
+          "n": 11
+        },
+        "n_items_all_methods_same_direction": 7,
+        "convergence_pairs": [
+          {
+            "method_a": "self_report",
+            "method_b": "pairwise",
+            "direction_agreement": 0.5,
+            "n_directed_items": 6,
+            "n_undirected_items": 5,
+            "sign_flip_rate": 0.5,
+            "spearman_rho": 0.014,
+            "spearman_lo": -0.7345,
+            "spearman_hi": 0.7175,
+            "spearman_p": 0.9674,
+            "pearson_r": 0.1844,
+            "mean_abs_disagreement": 0.3561,
+            "n_items": 11
+          },
+          {
+            "method_a": "self_report",
+            "method_b": "tradeoff",
+            "direction_agreement": 0.625,
+            "n_directed_items": 8,
+            "n_undirected_items": 3,
+            "sign_flip_rate": 0.375,
+            "spearman_rho": 0.1785,
+            "spearman_lo": -0.5551,
+            "spearman_hi": 0.7524,
+            "spearman_p": 0.5995,
+            "pearson_r": 0.4274,
+            "mean_abs_disagreement": 0.3451,
+            "n_items": 11
+          },
+          {
+            "method_a": "pairwise",
+            "method_b": "tradeoff",
+            "direction_agreement": 1.0,
+            "n_directed_items": 6,
+            "n_undirected_items": 5,
+            "sign_flip_rate": 0.0,
+            "spearman_rho": 0.6762,
+            "spearman_lo": 0.1119,
+            "spearman_hi": 0.932,
+            "spearman_p": 0.0224,
+            "pearson_r": 0.7615,
+            "mean_abs_disagreement": 0.2492,
+            "n_items": 11
+          }
+        ]
+      },
+      "qwen25-7b": {
+        "mean_direction_agreement": 0.5363756613756614,
+        "mean_spearman_rho": -0.012693574089224577,
+        "mean_abs_disagreement": 0.37023569023569025,
+        "mean_sign_flip_rate": 0.4636243386243386,
+        "cmcs": {
+          "point": 0.7708249158249157,
+          "lo": 0.6970791245791246,
+          "hi": 0.8430557659932659,
+          "n": 11
+        },
+        "n_items_all_methods_same_direction": 5,
+        "convergence_pairs": [
+          {
+            "method_a": "self_report",
+            "method_b": "pairwise",
+            "direction_agreement": 0.5556,
+            "n_directed_items": 9,
+            "n_undirected_items": 2,
+            "sign_flip_rate": 0.4444,
+            "spearman_rho": -0.2217,
+            "spearman_lo": -0.8141,
+            "spearman_hi": 0.4414,
+            "spearman_p": 0.5123,
+            "pearson_r": -0.2097,
+            "mean_abs_disagreement": 0.4327,
+            "n_items": 11
+          },
+          {
+            "method_a": "self_report",
+            "method_b": "tradeoff",
+            "direction_agreement": 0.625,
+            "n_directed_items": 8,
+            "n_undirected_items": 3,
+            "sign_flip_rate": 0.375,
+            "spearman_rho": 0.548,
+            "spearman_lo": -0.1827,
+            "spearman_hi": 0.988,
+            "spearman_p": 0.081,
+            "pearson_r": 0.4755,
+            "mean_abs_disagreement": 0.3036,
+            "n_items": 11
+          },
+          {
+            "method_a": "pairwise",
+            "method_b": "tradeoff",
+            "direction_agreement": 0.4286,
+            "n_directed_items": 7,
+            "n_undirected_items": 4,
+            "sign_flip_rate": 0.5714,
+            "spearman_rho": -0.3643,
+            "spearman_lo": -0.794,
+            "spearman_hi": 0.2751,
+            "spearman_p": 0.2707,
+            "pearson_r": -0.3464,
+            "mean_abs_disagreement": 0.3744,
+            "n_items": 11
+          }
+        ]
+      }
+    }
   },
   "cross_model": {
     "model_a": "gemini-31-flash-lite",

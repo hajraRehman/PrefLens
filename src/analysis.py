@@ -63,23 +63,42 @@ def load_experiment_cfg() -> dict:
 
 
 def quality_report(df: pd.DataFrame) -> pd.DataFrame:
-    """Call-failure and parse-failure rates, per model and method."""
-    choice_turns = df[df["parse_stage"] != "not_applicable"]
-    g = choice_turns.groupby(["model_key", "method"], dropna=False)
-    out = g.apply(
-        lambda d: pd.Series({
-            "n_calls": len(d),
+    """Call-failure and parse-failure rates, per model and method.
+
+    A failed call carries `parse_stage == "not_applicable"` (there was no text to
+    parse), exactly like a free-text `perform_task` turn. Filtering on that field
+    alone would therefore hide every call failure and force the failure rate to
+    zero. Choice turns are identified from `extra.stage_kind` instead, so failures
+    stay visible; parse rates are then conditioned on calls that actually
+    returned text.
+    """
+    is_choice = df["extra"].apply(lambda e: (e or {}).get("stage_kind") != "perform_task")
+    ct = df[is_choice]
+
+    rows = []
+    for (mk, meth), d in ct.groupby(["model_key", "method"], dropna=False):
+        ok = d[d["call_ok"].astype(bool)]
+        rows.append({
+            "model_key": mk,
+            "method": meth,
+            "n_choice_calls": len(d),
+            "n_call_failures": int((~d["call_ok"].astype(bool)).sum()),
             "call_failure_rate": float((~d["call_ok"].astype(bool)).mean()),
-            "parse_failure_rate": float((~d["parse_success"].fillna(False).astype(bool)).mean()),
-            "pct_strict_json": float((d["parse_stage"] == "strict_json").mean()),
-            "pct_recovered_from_prose": float(
-                d["parse_stage"].isin(["labelled_text", "bare_token", "embedded_json"]).mean()),
+            "n_parse_failures": int((~ok["parse_success"].fillna(False).astype(bool)).sum()),
+            # Conditioned on a successful call: a 429 is not a parsing problem.
+            "parse_failure_rate": (
+                float((~ok["parse_success"].fillna(False).astype(bool)).mean())
+                if len(ok) else float("nan")),
+            "pct_strict_json": (float((ok["parse_stage"] == "strict_json").mean())
+                                if len(ok) else float("nan")),
+            "pct_recovered_from_prose": (
+                float(ok["parse_stage"].isin(
+                    ["labelled_text", "bare_token", "embedded_json"]).mean())
+                if len(ok) else float("nan")),
             "mean_latency_s": float(d["latency_s"].mean()),
             "mean_attempts": float(d["attempts"].mean()),
-        }),
-        include_groups=False,
-    ).reset_index()
-    return out
+        })
+    return pd.DataFrame(rows)
 
 
 def position_bias_report(df: pd.DataFrame) -> pd.DataFrame:
@@ -303,6 +322,57 @@ def per_item_table(mat: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def matched_subset(scores: pd.DataFrame, items: dict, models: list[str]) -> dict:
+    """Convergence recomputed on the methods and items common to every model.
+
+    Cross-model comparison is otherwise invalid. Agreement statistics depend
+    mechanically on how many methods are averaged over and on which items are
+    included, so a model measured with 3 methods on 10 items cannot be compared
+    against one measured with 4 methods on 12. The Gemini arm is a partial run
+    (free-tier quota exhausted, D-24), which makes this mandatory rather than
+    optional.
+
+    Returns the shared basis and per-model convergence restricted to it.
+    """
+    per_model_mat = {m: score_matrix(scores, m, "neutral", items) for m in models}
+    per_model_mat = {m: mat for m, mat in per_model_mat.items() if not mat.empty}
+    if len(per_model_mat) < 2:
+        return {"available": False}
+
+    common_methods = set.intersection(
+        *[{c for c in mat.columns if mat[c].notna().any()} for mat in per_model_mat.values()])
+    if not common_methods:
+        return {"available": False, "reason": "no method common to all models"}
+    ordered = [m for m in METHOD_ORDER if m in common_methods]
+
+    # An item qualifies only if every model has a finite score for it under
+    # every shared method.
+    common_items = set.intersection(*[
+        {i for i in mat.index if mat.loc[i, ordered].notna().all()}
+        for mat in per_model_mat.values()
+    ])
+    if len(common_items) < 3:
+        return {"available": False, "reason": f"only {len(common_items)} shared items"}
+    idx = sorted(common_items)
+
+    out = {"available": True, "methods": ordered, "items": idx,
+           "n_methods": len(ordered), "n_items": len(idx), "per_model": {}}
+    for m, mat in per_model_mat.items():
+        sub = mat.loc[idx, ordered]
+        conv = convergence_table(sub)
+        per_item = per_item_table(sub)
+        out["per_model"][m] = {
+            "mean_direction_agreement": float(np.nanmean(conv["direction_agreement"])),
+            "mean_spearman_rho": float(np.nanmean(conv["spearman_rho"])),
+            "mean_abs_disagreement": float(np.nanmean(conv["mean_abs_disagreement"])),
+            "mean_sign_flip_rate": float(np.nanmean(conv["sign_flip_rate"])),
+            "cmcs": M.bootstrap_ci(per_item["cmcs"].to_numpy()),
+            "n_items_all_methods_same_direction": int(per_item["all_same_direction"].sum()),
+            "convergence_pairs": conv.round(4).to_dict("records"),
+        }
+    return out
+
+
 def strength_vs_stability(item_tbl: pd.DataFrame) -> dict:
     """Secondary hypothesis: do larger pairwise margins go with lower cross-method
     disagreement? Single pre-specified test, Spearman, no metric shopping (D-14)."""
@@ -449,6 +519,9 @@ def run(phase: str) -> dict:
             "framing": framing_sensitivity(scores, items, model),
         }
 
+    # Apples-to-apples cross-model comparison on a shared basis (D-24).
+    summary["matched_subset"] = matched_subset(scores, items, summary["models"])
+
     # Cross-model replication (RQ5): do the two models rank the items alike?
     if len(summary["models"]) >= 2:
         m1, m2 = summary["models"][:2]
@@ -482,6 +555,20 @@ def run(phase: str) -> dict:
         if s["degenerate_methods"]:
             print(f"          !! convergence for {model} is NOT interpretable as method "
                   f"disagreement: {s['degenerate_methods']} carry no signal")
+    ms = summary.get("matched_subset", {})
+    if ms.get("available"):
+        print(f"\n--- MATCHED SUBSET: {ms['n_methods']} methods x {ms['n_items']} items "
+              f"common to all models ---")
+        print(f"    methods: {', '.join(ms['methods'])}")
+        for m, v in ms["per_model"].items():
+            deg = summary["per_model"][m]["degenerate_methods"]
+            flag = f"   [degenerate: {deg}]" if deg else ""
+            print(f"    {m:<22} dir.agree {v['mean_direction_agreement']:.3f}  "
+                  f"rho {v['mean_spearman_rho']:+.3f}  "
+                  f"all-agree {v['n_items_all_methods_same_direction']}/{ms['n_items']}{flag}")
+    else:
+        print(f"\nmatched subset unavailable: {ms.get('reason', 'n/a')}")
+
     print(f"\nwrote -> {res / 'summary.json'}")
     return summary
 

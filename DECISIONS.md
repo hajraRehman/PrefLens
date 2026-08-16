@@ -366,6 +366,47 @@ This is stated in the report rather than left for a reader to infer.
 
 ---
 
+## D-24 — Gemini arm shipped partial; cross-model claims restricted to a matched subset
+
+The Gemini free tier turned out to cap at **500 requests/day**, not the ~1,500
+assumed in D-22. The run stopped at 496 successful calls with a hard 429.
+
+What completed is clean — the quota hit mid-queue, so every completed cell is
+complete — but coverage is partial:
+
+| method | complete on |
+|---|---|
+| A self-report | 11/12 items |
+| B pairwise | 11/12 items |
+| C trade-off | 10/12 items |
+| D sequential | **0** (never started) |
+
+**Options considered.** (a) Re-run the arm through OpenRouter, which serves the
+same pinned model for roughly $0.13. (b) Wait for the daily reset. (c) Ship the
+partial. The project owner chose (c). Using additional Google accounts to reset
+the quota was raised and declined: it violates the provider's terms, and it
+would be the one step in this study that could not be written down honestly in
+the methodology.
+
+### Mandatory consequence: the matched subset
+
+Agreement statistics depend mechanically on how many methods are averaged over
+and which items are included. A model measured with 3 methods on 10 items
+**cannot** be compared against one measured with 4 methods on 12 — a difference
+would partly reflect the basis, not the model.
+
+All cross-model claims are therefore computed on `matched_subset`: the methods
+and items available for every model — here **3 methods (A, B, C) x 11 items**.
+Per-model 4-method results are still reported, but never compared across models.
+
+### Retained limitation
+
+Method D has **no** Gemini data, so the sequential-selection method is a
+two-model result throughout. Because the runner is checkpointed, completing the
+Gemini arm later is one command and loses none of the existing data.
+
+---
+
 ## D-23 — Degenerate measures must be identified before convergence is interpreted
 
 **Found during a correctness audit after the main run. It changes the headline

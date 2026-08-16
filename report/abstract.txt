@@ -1,0 +1,19 @@
+No Signal, No Convergence: A Multi-Method Convergent-Validity Study of LLM
+Preference Elicitation
+
+Apparent LLM preferences are increasingly measured, but no ground truth exists
+against which any measurement can be checked, leaving convergent validity as the
+main available evidence. We implemented four independent elicitation methods --
+direct self-report, repeated pairwise choice, a cost trade-off, and sequential
+task selection -- over 12 welfare-neutral task pairs, on three model families
+(4,232 logged calls, temperature 1.0, display order randomised per trial). On a
+matched 3-method x 11-item basis, cross-method convergence differed sharply by
+model: Spearman rho = +0.880 (Gemini-3.1-flash-lite), +0.290 (Llama-3.1-8B),
+-0.013 (Qwen-2.5-7B); only Gemini exceeded a simulated chance ceiling.
+Decomposing choices into position and content components explains this: Qwen's
+pairwise measure was pure position artefact, reproducing the random
+display-order draw exactly on all 12 items while still passing coherence checks.
+Convergence tracked available signal, not method quality. Measurement
+consistency alone licenses no claim about genuine preference.
+
+[149 words]

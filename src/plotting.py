@@ -168,6 +168,64 @@ def fig4_framing(framing: dict, model: str, phase: str) -> Path | None:
     return p
 
 
+def fig5_signal_vs_convergence(summary: dict, phase: str) -> Path | None:
+    """The study's central diagnostic: convergence plotted against how much
+    position-independent preference signal each model actually produced."""
+    ms = (summary or {}).get("matched_subset", {})
+    if not ms.get("available"):
+        return None
+
+    rows = []
+    for model, v in ms["per_model"].items():
+        sig = summary["per_model"][model].get("signal_vs_position", {})
+        # Average |content| over the methods included in the matched subset.
+        vals = [sig[m]["mean_abs_content"] for m in ms["methods"]
+                if m in sig and np.isfinite(sig[m]["mean_abs_content"])]
+        if not vals:
+            continue
+        rows.append({
+            "model": model,
+            "content": float(np.mean(vals)),
+            "rho": v["mean_spearman_rho"],
+            "agree": v["mean_direction_agreement"],
+            "degenerate": bool(summary["per_model"][model]["degenerate_methods"]),
+        })
+    if len(rows) < 2:
+        return None
+
+    fig, axes = plt.subplots(1, 2, figsize=(9.6, 4.2))
+    for ax, key, lab in (
+        (axes[0], "rho", "mean Spearman rho between methods"),
+        (axes[1], "agree", "mean direction agreement"),
+    ):
+        for r in rows:
+            colour = "#c05621" if r["degenerate"] else "#2b6cb0"
+            ax.scatter(r["content"], r[key], s=110, color=colour,
+                       edgecolor="white", zorder=3)
+            ax.annotate(r["model"].replace("-31-flash-lite", "-3.1-fl"),
+                        (r["content"], r[key]), textcoords="offset points",
+                        xytext=(7, -3), fontsize=7.5)
+        ax.set_xlabel("mean |content effect|\n(order-free preference signal)")
+        ax.set_ylabel(lab)
+        ax.set_xlim(-0.02, max(r["content"] for r in rows) * 1.35)
+
+    axes[1].axhline(
+        summary["per_model"][rows[0]["model"]]["random_baseline"]["direction_agreement_mean"],
+        ls=":", color="0.5", lw=1, label="chance")
+    axes[1].legend(fontsize=7)
+    fig.suptitle(
+        "Fig 5. Cross-method convergence tracks position-independent signal\n"
+        f"matched subset: {ms['n_methods']} methods x {ms['n_items']} items; "
+        "orange = measure degenerate (pure position responding)",
+        fontsize=9.5,
+    )
+    _stamp(fig, "all models", phase, ms["n_items"])
+    p = FIG / f"fig5_signal_vs_convergence_{phase}.png"
+    fig.savefig(p)
+    plt.close(fig)
+    return p
+
+
 def run(phase: str) -> list[Path]:
     FIG.mkdir(parents=True, exist_ok=True)
     exp_cfg = A.load_experiment_cfg()
@@ -198,6 +256,10 @@ def run(phase: str) -> list[Path]:
         f4 = fig4_framing(fr, model, phase)
         if f4:
             made.append(f4)
+
+    f5 = fig5_signal_vs_convergence(summary, phase)
+    if f5:
+        made.append(f5)
 
     for p in made:
         print(f"wrote {p}")
