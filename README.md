@@ -4,7 +4,7 @@
 
 A multi-method study asking whether four distinct ways of measuring the same
 apparent preference agree with each other.
-Digital Minds Research Sprint — Track 4 (Preference Elicitation Methods).
+Digital Minds Research Sprint: Track 4 (Preference Elicitation Methods).
 
 ---
 
@@ -26,7 +26,7 @@ Secondary questions:
 This repository contains **three studies**. Study 2 also has a provider-controlled
 replication (**Study 2b**) that supersedes its original uncontrolled run.
 
-### Study 1 — multi-method convergence (Qwen, Llama, Gemini)
+### Study 1: multi-method convergence (Qwen, Llama, Gemini)
 
 Matched basis: 3 methods x 10 items common to all three models, every cell fully
 observed. Tested against a **matched permutation null** (10,000 permutations;
@@ -39,21 +39,21 @@ the only thing destroyed is cross-method alignment).
 | `llama-3.1-8b-instruct` | 0.690 | 0.1231 | +0.308 | 0.0693 |
 | `qwen-2.5-7b-instruct` | 0.565 | 0.2736 | +0.021 | 0.4325 |
 
-**Gemini's convergence is established.** **Llama is ambiguous** — nominally
+**Gemini's convergence is established.** **Llama is ambiguous** nominally
 significant on its own fuller 4-method basis (p = 0.014 / 0.033) but not on the
 matched basis, and not after Bonferroni correction across the six tests.
 **Qwen's is not detectable.**
 
 On Qwen the pairwise measure supplied **no detectable order-invariant signal**:
-its scores reproduced the display-order draw *exactly* on all 12 items — a
+its scores reproduced the display-order draw *exactly* on all 12 items, a
 confident-looking preference vector fully accounted for by display position,
 while still passing validity controls.
 
 *(An earlier parametric "chance" baseline was found during final audit to be
-mis-specified in three ways and is withdrawn — see D-32. Its numbers appear
+mis-specified in three ways and is withdrawn: see D-32. Its numbers appear
 nowhere in this repository's claims.)*
 
-### Study 2b — provider-pinned within-family follow-up (GPT-OSS 20B vs 120B)
+### Study 2b: provider-pinned within-family follow-up (GPT-OSS 20B vs 120B)
 
 **This is the controlled result.** Same family, same prompts, same sampling,
 **exact** order counterbalancing, and both arms pinned to a single upstream
@@ -78,7 +78,7 @@ inference provider, which was neither controlled nor recorded (D-33). It is
 retained for traceability and gave Δ = −0.483 / −0.217, but it should not be
 cited as a provider-controlled result.
 
-### Study 3 — is the artefact created by our own instruction?
+### Study 3: is the artefact created by our own instruction?
 
 Identical to Study 2b except one deleted sentence: *"There is no correct answer
 and no choice is more helpful than any other."* A config diff confirms only
@@ -90,7 +90,7 @@ and no choice is more helpful than any other."* A config diff confirms only
 | GPT-OSS 20B | 0.608 | 0.483 | **+0.125** | **[+0.025, +0.225]** |
 
 **Extreme positional responding in 120B persists without the explicit
-indifference cue** — so that explanation is not supported there. For **20B the
+indifference cue** so that explanation is not supported there. For **20B the
 change was in the pre-specified direction** with a CI excluding zero, which is
 **suggestive** evidence the cue increased positional susceptibility; the model ×
 framing interaction (−0.108 [−0.208, −0.008]) is similarly suggestive. Neither
@@ -99,7 +99,7 @@ survives strict correction across the five reported tests.
 The reasonable reading: elicitation framing may interact with model identity
 rather than exerting a uniform effect.
 
-### Zero-cost reanalysis — what if we remove position?
+### Zero-cost reanalysis: what if we remove position?
 
 Averaging the two display orders cancels a symmetric position effect. Exact for
 self-report and pairwise only (D-39):
@@ -128,19 +128,19 @@ Full write-up: [`report/report.md`](report/report.md).
 
 ## 2. Why it matters
 
-Work on apparent LLM preferences usually operationalises "preference" one way —
-most often repeated pairwise forced choice — and reports the resulting numbers.
+Work on apparent LLM preferences usually operationalises "preference" one way,
+most often repeated pairwise forced choice and reports the resulting numbers.
 But the field has **no ground truth** against which a preference estimate can be
-checked directly. *Convergent validity* — whether several distinct
-operationalisations of the same construct land in the same place — is **one
+checked directly. *Convergent validity* whether several distinct
+operationalisations of the same construct land in the same place, is **one
 useful source of evidence** about measurement consistency, alongside test-retest
 reliability, controlled interventions, and synthetic tasks with constructed
 ground truth. They are distinct but **not
-mechanistically independent** — all query the same model through text.
+mechanistically independent** , all query the same model through text.
 
 If they do, preference estimates are at least method-robust. If they do not,
 then conclusions drawn from any single elicitation procedure are conclusions
-about the procedure as much as about the model — which is itself a result worth
+about the procedure as much as about the model which is itself a result worth
 having.
 
 **What this study is not.** It makes no claim about consciousness, sentience,
@@ -274,7 +274,7 @@ Interrupting is safe. Raw JSONL is append-only; rerunning the same command
 reads back every completed `trial_id` and resumes (D-17).
 
 
-## 8b. Study 2 — controlled position-bias follow-up
+## 8b. Study 2: controlled position-bias follow-up
 
 Separate config, separate data, separate results. It never touches Study 1's records.
 
@@ -292,7 +292,7 @@ The analysis aborts before computing any statistic if duplicate trial IDs, call 
 parse failures, a served/requested model mismatch, or a counterbalance imbalance
 are detected.
 
-## 8c. Study 2b — provider-pinned replication
+## 8c. Study 2b: provider-pinned replication
 
 Study 2 used OpenRouter with model fallback disabled, which pins the served model
 but **not** the upstream inference provider (OpenRouter lists 12 endpoints for
@@ -304,7 +304,7 @@ python -m src.followup.runner --phase main --config configs/followup_pinned.yaml
 python -m src.followup.analysis --study-id followup_gpt_oss_provider_pinned
 ```
 
-## 8e. Study 3 — neutral-framing test (RQ4)
+## 8e. Study 3: neutral-framing test (RQ4)
 
 Study 2b with one sentence deleted from the system prompt.
 
