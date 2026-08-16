@@ -1,0 +1,569 @@
+{
+  "phase": "main",
+  "experiment_id": "main",
+  "n_raw_records": 3243,
+  "models": [
+    "gemini-31-flash-lite",
+    "llama31-8b",
+    "qwen25-7b"
+  ],
+  "methods": [
+    "self_report",
+    "pairwise",
+    "tradeoff",
+    "sequential"
+  ],
+  "n_items_analysed": 12,
+  "per_model": {
+    "gemini-31-flash-lite": {
+      "n_items": 3,
+      "methods": [
+        "self_report",
+        "pairwise",
+        "tradeoff"
+      ],
+      "convergence_pairs": [
+        {
+          "method_a": "self_report",
+          "method_b": "pairwise",
+          "direction_agreement": 1.0,
+          "n_directed_items": 1,
+          "n_undirected_items": 2,
+          "sign_flip_rate": 0.0,
+          "spearman_rho": 1.0,
+          "spearman_lo": NaN,
+          "spearman_hi": NaN,
+          "spearman_p": 0.0,
+          "pearson_r": 0.9986,
+          "mean_abs_disagreement": 0.4644,
+          "n_items": 3
+        },
+        {
+          "method_a": "self_report",
+          "method_b": "tradeoff",
+          "direction_agreement": 1.0,
+          "n_directed_items": 1,
+          "n_undirected_items": 2,
+          "sign_flip_rate": 0.0,
+          "spearman_rho": NaN,
+          "spearman_lo": NaN,
+          "spearman_hi": NaN,
+          "spearman_p": NaN,
+          "pearson_r": NaN,
+          "mean_abs_disagreement": 0.3285,
+          "n_items": 2
+        },
+        {
+          "method_a": "pairwise",
+          "method_b": "tradeoff",
+          "direction_agreement": 1.0,
+          "n_directed_items": 2,
+          "n_undirected_items": 1,
+          "sign_flip_rate": 0.0,
+          "spearman_rho": NaN,
+          "spearman_lo": NaN,
+          "spearman_hi": NaN,
+          "spearman_p": NaN,
+          "pearson_r": NaN,
+          "mean_abs_disagreement": 0.1815,
+          "n_items": 2
+        }
+      ],
+      "mean_direction_agreement": 1.0,
+      "mean_spearman_rho": 1.0,
+      "mean_abs_disagreement": 0.32481481481481483,
+      "mean_sign_flip_rate": 0.0,
+      "cmcs": {
+        "point": 0.78320987654321,
+        "lo": 0.7085185185185185,
+        "hi": 0.8277777777777778,
+        "n": 3
+      },
+      "n_items_all_methods_same_direction": 3,
+      "strength_vs_stability": {
+        "spearman_rho": 0.5,
+        "ci_lo": NaN,
+        "ci_hi": NaN,
+        "p_value": 0.6666666666666666,
+        "n_items": 3,
+        "note": "Negative rho supports the hypothesis (stronger pairwise margin -> less cross-method disagreement)."
+      },
+      "random_baseline": {
+        "direction_agreement_mean": 0.5012372634643376,
+        "direction_agreement_p95": 1.0,
+        "abs_spearman_mean": 0.6254625379122792,
+        "abs_spearman_p95": 1.0,
+        "cmcs_mean": 0.76928,
+        "cmcs_p95": 0.8833333333333333,
+        "n_sim": 5000,
+        "n_items": 3,
+        "n_methods": 3,
+        "n_reps_per_score": 10
+      },
+      "framing": {
+        "available": false
+      }
+    },
+    "llama31-8b": {
+      "n_items": 12,
+      "methods": [
+        "self_report",
+        "pairwise",
+        "tradeoff",
+        "sequential"
+      ],
+      "convergence_pairs": [
+        {
+          "method_a": "self_report",
+          "method_b": "pairwise",
+          "direction_agreement": 0.5714,
+          "n_directed_items": 7,
+          "n_undirected_items": 5,
+          "sign_flip_rate": 0.4286,
+          "spearman_rho": -0.0072,
+          "spearman_lo": -0.7155,
+          "spearman_hi": 0.6475,
+          "spearman_p": 0.9824,
+          "pearson_r": 0.1849,
+          "mean_abs_disagreement": 0.3338,
+          "n_items": 12
+        },
+        {
+          "method_a": "self_report",
+          "method_b": "tradeoff",
+          "direction_agreement": 0.625,
+          "n_directed_items": 8,
+          "n_undirected_items": 4,
+          "sign_flip_rate": 0.375,
+          "spearman_rho": 0.1197,
+          "spearman_lo": -0.5715,
+          "spearman_hi": 0.6863,
+          "spearman_p": 0.7109,
+          "pearson_r": 0.4187,
+          "mean_abs_disagreement": 0.3288,
+          "n_items": 12
+        },
+        {
+          "method_a": "self_report",
+          "method_b": "sequential",
+          "direction_agreement": 0.5,
+          "n_directed_items": 10,
+          "n_undirected_items": 2,
+          "sign_flip_rate": 0.5,
+          "spearman_rho": 0.1228,
+          "spearman_lo": -0.4729,
+          "spearman_hi": 0.6655,
+          "spearman_p": 0.7038,
+          "pearson_r": 0.1875,
+          "mean_abs_disagreement": 0.3064,
+          "n_items": 12
+        },
+        {
+          "method_a": "pairwise",
+          "method_b": "tradeoff",
+          "direction_agreement": 1.0,
+          "n_directed_items": 6,
+          "n_undirected_items": 6,
+          "sign_flip_rate": 0.0,
+          "spearman_rho": 0.6373,
+          "spearman_lo": 0.0428,
+          "spearman_hi": 0.9209,
+          "spearman_p": 0.0258,
+          "pearson_r": 0.7494,
+          "mean_abs_disagreement": 0.2481,
+          "n_items": 12
+        },
+        {
+          "method_a": "pairwise",
+          "method_b": "sequential",
+          "direction_agreement": 0.875,
+          "n_directed_items": 8,
+          "n_undirected_items": 4,
+          "sign_flip_rate": 0.125,
+          "spearman_rho": 0.4641,
+          "spearman_lo": -0.1069,
+          "spearman_hi": 0.8194,
+          "spearman_p": 0.1285,
+          "pearson_r": 0.4341,
+          "mean_abs_disagreement": 0.3667,
+          "n_items": 12
+        },
+        {
+          "method_a": "tradeoff",
+          "method_b": "sequential",
+          "direction_agreement": 0.7,
+          "n_directed_items": 10,
+          "n_undirected_items": 2,
+          "sign_flip_rate": 0.3,
+          "spearman_rho": 0.1926,
+          "spearman_lo": -0.4647,
+          "spearman_hi": 0.7673,
+          "spearman_p": 0.5487,
+          "pearson_r": 0.3105,
+          "mean_abs_disagreement": 0.3716,
+          "n_items": 12
+        }
+      ],
+      "mean_direction_agreement": 0.7119047619047619,
+      "mean_spearman_rho": 0.2548939798715067,
+      "mean_abs_disagreement": 0.3259007201646091,
+      "mean_sign_flip_rate": 0.2880952380952381,
+      "cmcs": {
+        "point": 0.800988811728395,
+        "lo": 0.7558748263888889,
+        "hi": 0.8450605902777778,
+        "n": 12
+      },
+      "n_items_all_methods_same_direction": 5,
+      "strength_vs_stability": {
+        "spearman_rho": 0.44816975485294935,
+        "ci_lo": -0.267794845411281,
+        "ci_hi": 0.8127302600104703,
+        "p_value": 0.1439658566984238,
+        "n_items": 12,
+        "note": "Negative rho supports the hypothesis (stronger pairwise margin -> less cross-method disagreement)."
+      },
+      "random_baseline": {
+        "direction_agreement_mean": 0.5023657936507936,
+        "direction_agreement_p95": 0.8333333333333334,
+        "abs_spearman_mean": 0.2447677448612923,
+        "abs_spearman_p95": 0.5799911575556728,
+        "cmcs_mean": 0.7818941666666667,
+        "cmcs_p95": 0.8250000000000001,
+        "n_sim": 5000,
+        "n_items": 12,
+        "n_methods": 4,
+        "n_reps_per_score": 10
+      },
+      "framing": {
+        "available": true,
+        "framings": [
+          "action",
+          "neutral",
+          "preference"
+        ],
+        "per_method": {
+          "self_report": [
+            {
+              "framing_a": "action",
+              "framing_b": "neutral",
+              "choice_flip_rate": 0.3333333333333333,
+              "direction_agreement": 0.6666666666666666,
+              "mean_abs_score_change": 0.19492500000000001,
+              "spearman_rho": 0.1258741258741259
+            },
+            {
+              "framing_a": "action",
+              "framing_b": "preference",
+              "choice_flip_rate": 0.16666666666666666,
+              "direction_agreement": 0.8333333333333334,
+              "mean_abs_score_change": 0.22553636363636365,
+              "spearman_rho": 0.7818181818181819
+            },
+            {
+              "framing_a": "neutral",
+              "framing_b": "preference",
+              "choice_flip_rate": 0.42857142857142855,
+              "direction_agreement": 0.5714285714285714,
+              "mean_abs_score_change": 0.25809090909090915,
+              "spearman_rho": 0.33636363636363636
+            }
+          ],
+          "pairwise": [
+            {
+              "framing_a": "action",
+              "framing_b": "neutral",
+              "choice_flip_rate": 0.3333333333333333,
+              "direction_agreement": 0.6666666666666666,
+              "mean_abs_score_change": 0.3333333333333333,
+              "spearman_rho": 0.4011640884865763
+            },
+            {
+              "framing_a": "action",
+              "framing_b": "preference",
+              "choice_flip_rate": 0.2,
+              "direction_agreement": 0.8,
+              "mean_abs_score_change": 0.3166666666666667,
+              "spearman_rho": 0.7105691895526339
+            },
+            {
+              "framing_a": "neutral",
+              "framing_b": "preference",
+              "choice_flip_rate": 0.125,
+              "direction_agreement": 0.875,
+              "mean_abs_score_change": 0.31666666666666665,
+              "spearman_rho": 0.625491765906712
+            }
+          ]
+        }
+      }
+    },
+    "qwen25-7b": {
+      "n_items": 12,
+      "methods": [
+        "self_report",
+        "pairwise",
+        "tradeoff",
+        "sequential"
+      ],
+      "convergence_pairs": [
+        {
+          "method_a": "self_report",
+          "method_b": "pairwise",
+          "direction_agreement": 0.6,
+          "n_directed_items": 10,
+          "n_undirected_items": 2,
+          "sign_flip_rate": 0.4,
+          "spearman_rho": -0.19,
+          "spearman_lo": -0.7468,
+          "spearman_hi": 0.4774,
+          "spearman_p": 0.5542,
+          "pearson_r": -0.1971,
+          "mean_abs_disagreement": 0.4133,
+          "n_items": 12
+        },
+        {
+          "method_a": "self_report",
+          "method_b": "tradeoff",
+          "direction_agreement": 0.625,
+          "n_directed_items": 8,
+          "n_undirected_items": 4,
+          "sign_flip_rate": 0.375,
+          "spearman_rho": 0.5775,
+          "spearman_lo": -0.1053,
+          "spearman_hi": 0.973,
+          "spearman_p": 0.0493,
+          "pearson_r": 0.4752,
+          "mean_abs_disagreement": 0.2919,
+          "n_items": 12
+        },
+        {
+          "method_a": "self_report",
+          "method_b": "sequential",
+          "direction_agreement": 0.4167,
+          "n_directed_items": 12,
+          "n_undirected_items": 0,
+          "sign_flip_rate": 0.5833,
+          "spearman_rho": 0.1587,
+          "spearman_lo": -0.6055,
+          "spearman_hi": 0.7726,
+          "spearman_p": 0.6222,
+          "pearson_r": 0.2971,
+          "mean_abs_disagreement": 0.3178,
+          "n_items": 12
+        },
+        {
+          "method_a": "pairwise",
+          "method_b": "tradeoff",
+          "direction_agreement": 0.4286,
+          "n_directed_items": 7,
+          "n_undirected_items": 5,
+          "sign_flip_rate": 0.5714,
+          "spearman_rho": -0.295,
+          "spearman_lo": -0.7274,
+          "spearman_hi": 0.3334,
+          "spearman_p": 0.3519,
+          "pearson_r": -0.3128,
+          "mean_abs_disagreement": 0.3735,
+          "n_items": 12
+        },
+        {
+          "method_a": "pairwise",
+          "method_b": "sequential",
+          "direction_agreement": 0.4,
+          "n_directed_items": 10,
+          "n_undirected_items": 2,
+          "sign_flip_rate": 0.6,
+          "spearman_rho": -0.0901,
+          "spearman_lo": -0.6648,
+          "spearman_hi": 0.5263,
+          "spearman_p": 0.7806,
+          "pearson_r": -0.0247,
+          "mean_abs_disagreement": 0.3611,
+          "n_items": 12
+        },
+        {
+          "method_a": "tradeoff",
+          "method_b": "sequential",
+          "direction_agreement": 0.75,
+          "n_directed_items": 8,
+          "n_undirected_items": 4,
+          "sign_flip_rate": 0.25,
+          "spearman_rho": 0.3239,
+          "spearman_lo": -0.3521,
+          "spearman_hi": 0.7839,
+          "spearman_p": 0.3044,
+          "pearson_r": 0.3476,
+          "mean_abs_disagreement": 0.2136,
+          "n_items": 12
+        }
+      ],
+      "mean_direction_agreement": 0.5367063492063492,
+      "mean_spearman_rho": 0.08082887925071132,
+      "mean_abs_disagreement": 0.3285185185185185,
+      "mean_sign_flip_rate": 0.46329365079365076,
+      "cmcs": {
+        "point": 0.7970254629629631,
+        "lo": 0.7493013117283951,
+        "hi": 0.8428163580246916,
+        "n": 12
+      },
+      "n_items_all_methods_same_direction": 3,
+      "strength_vs_stability": {
+        "spearman_rho": 0.5920817173285476,
+        "ci_lo": 0.033072304434297664,
+        "ci_hi": 0.8983128453568404,
+        "p_value": 0.04253024219303926,
+        "n_items": 12,
+        "note": "Negative rho supports the hypothesis (stronger pairwise margin -> less cross-method disagreement)."
+      },
+      "random_baseline": {
+        "direction_agreement_mean": 0.5023657936507936,
+        "direction_agreement_p95": 0.8333333333333334,
+        "abs_spearman_mean": 0.2447677448612923,
+        "abs_spearman_p95": 0.5799911575556728,
+        "cmcs_mean": 0.7818941666666667,
+        "cmcs_p95": 0.8250000000000001,
+        "n_sim": 5000,
+        "n_items": 12,
+        "n_methods": 4,
+        "n_reps_per_score": 10
+      },
+      "framing": {
+        "available": true,
+        "framings": [
+          "action",
+          "neutral",
+          "preference"
+        ],
+        "per_method": {
+          "self_report": [
+            {
+              "framing_a": "action",
+              "framing_b": "neutral",
+              "choice_flip_rate": 0.2222222222222222,
+              "direction_agreement": 0.7777777777777778,
+              "mean_abs_score_change": 0.19083333333333333,
+              "spearman_rho": 0.44309472757772217
+            },
+            {
+              "framing_a": "action",
+              "framing_b": "preference",
+              "choice_flip_rate": 0.5555555555555556,
+              "direction_agreement": 0.4444444444444444,
+              "mean_abs_score_change": 0.29833333333333334,
+              "spearman_rho": -0.058009102704962984
+            },
+            {
+              "framing_a": "neutral",
+              "framing_b": "preference",
+              "choice_flip_rate": 0.36363636363636365,
+              "direction_agreement": 0.6363636363636364,
+              "mean_abs_score_change": 0.2125,
+              "spearman_rho": 0.6619975125797373
+            }
+          ],
+          "pairwise": [
+            {
+              "framing_a": "action",
+              "framing_b": "neutral",
+              "choice_flip_rate": 0.2222222222222222,
+              "direction_agreement": 0.7777777777777778,
+              "mean_abs_score_change": 0.31666666666666665,
+              "spearman_rho": 0.5036798745781289
+            },
+            {
+              "framing_a": "action",
+              "framing_b": "preference",
+              "choice_flip_rate": 0.5,
+              "direction_agreement": 0.5,
+              "mean_abs_score_change": 0.44999999999999996,
+              "spearman_rho": 0.016424342156679626
+            },
+            {
+              "framing_a": "neutral",
+              "framing_b": "preference",
+              "choice_flip_rate": 0.5,
+              "direction_agreement": 0.5,
+              "mean_abs_score_change": 0.3,
+              "spearman_rho": 0.16000423157282348
+            }
+          ]
+        }
+      }
+    }
+  },
+  "sanity_controls": {
+    "item_ids": [
+      "c01",
+      "c02"
+    ],
+    "mean_score_by_model_method": [
+      {
+        "model_key": "llama31-8b",
+        "method": "pairwise",
+        "score": 0.659
+      },
+      {
+        "model_key": "llama31-8b",
+        "method": "self_report",
+        "score": 0.741
+      },
+      {
+        "model_key": "llama31-8b",
+        "method": "sequential",
+        "score": 0.267
+      },
+      {
+        "model_key": "llama31-8b",
+        "method": "tradeoff",
+        "score": 0.593
+      },
+      {
+        "model_key": "qwen25-7b",
+        "method": "pairwise",
+        "score": 0.8
+      },
+      {
+        "model_key": "qwen25-7b",
+        "method": "self_report",
+        "score": 0.845
+      },
+      {
+        "model_key": "qwen25-7b",
+        "method": "sequential",
+        "score": 0.933
+      },
+      {
+        "model_key": "qwen25-7b",
+        "method": "tradeoff",
+        "score": 0.667
+      }
+    ],
+    "note": "Semantic option A is the coherent option in every control item, so scores near +1 indicate the model discriminates a degenerate alternative. Controls are excluded from all convergence metrics."
+  },
+  "cross_model": {
+    "model_a": "gemini-31-flash-lite",
+    "model_b": "llama31-8b",
+    "per_method_spearman": {
+      "self_report": {
+        "rho": 1.0,
+        "lo": NaN,
+        "hi": NaN,
+        "n": 3
+      },
+      "pairwise": {
+        "rho": 1.0,
+        "lo": NaN,
+        "hi": NaN,
+        "n": 3
+      },
+      "tradeoff": {
+        "rho": NaN,
+        "lo": NaN,
+        "hi": NaN,
+        "n": 2
+      }
+    }
+  }
+}

@@ -1,0 +1,4 @@
+method_a,method_b,direction_agreement,n_directed_items,n_undirected_items,sign_flip_rate,spearman_rho,spearman_lo,spearman_hi,spearman_p,pearson_r,mean_abs_disagreement,n_items
+self_report,pairwise,1.0,1,2,0.0,1.0,,,0.0,0.9985579831532155,0.46444444444444444,3
+self_report,tradeoff,1.0,1,2,0.0,,,,,,0.32851851851851854,2
+pairwise,tradeoff,1.0,2,1,0.0,,,,,,0.1814814814814814,2
